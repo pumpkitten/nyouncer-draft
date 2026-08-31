@@ -1,0 +1,2289 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ニャウンサー オンライン・グループドラフト Ver.5.0</title>
+  <style>
+
+:root{
+  --bg:#07101f;
+  --panel:#0d1728;
+  --panel2:#111e32;
+  --line:rgba(255,255,255,.09);
+  --text:#f4f6fb;
+  --muted:#8fa0b8;
+  --gold:#d9b66f;
+  --gold2:#f1d28c;
+  --red:#e4525d;
+  --green:#53c28b;
+  --blue:#66a8ff;
+  --shadow:0 18px 60px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:
+  radial-gradient(circle at 20% 10%, rgba(48,91,153,.18), transparent 28%),
+  radial-gradient(circle at 80% 0%, rgba(191,145,58,.12), transparent 22%),
+  var(--bg); color:var(--text);
+  font-family:Inter, "Noto Sans JP", "Yu Gothic UI", system-ui, sans-serif;
+}
+body{min-height:100vh;overflow-x:hidden}
+.noise{
+  pointer-events:none;position:fixed;inset:0;opacity:.025;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+}
+.topbar{position:sticky;top:0;z-index:50;height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;border-bottom:1px solid var(--line);background:rgba(7,16,31,.82);backdrop-filter:blur(16px)}
+.brand{display:flex;align-items:center;gap:12px;cursor:pointer}
+.brand-mark{width:38px;height:38px;border:1px solid rgba(217,182,111,.55);display:grid;place-items:center;color:var(--gold2);font-family:Georgia,serif;font-size:22px;background:linear-gradient(135deg,rgba(217,182,111,.16),rgba(255,255,255,.03));box-shadow:inset 0 0 25px rgba(217,182,111,.08)}
+.brand-title{font-weight:800;letter-spacing:.08em}
+.brand-sub{font-size:10px;letter-spacing:.23em;color:var(--gold);margin-top:2px}
+.top-actions{display:flex;align-items:center;gap:14px}
+.sync-badge{font-size:11px;color:var(--green);letter-spacing:.12em}
+.app{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:34px 28px 80px}
+.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:24px;align-items:stretch}
+.hero-main,.hero-side,.panel,.glass{border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.015));box-shadow:var(--shadow)}
+.hero-main{min-height:390px;padding:56px;position:relative;overflow:hidden}
+.hero-main:after{content:"DRAFT";position:absolute;right:-14px;bottom:-35px;font-size:140px;font-weight:900;color:rgba(255,255,255,.025);letter-spacing:.02em}
+.kicker{font-size:12px;color:var(--gold);letter-spacing:.28em;font-weight:800}
+h1{font-size:clamp(42px,6vw,82px);line-height:.92;margin:22px 0 18px;letter-spacing:-.045em}
+.hero-copy{max-width:620px;color:#b4c1d2;font-size:15px;line-height:1.9}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:34px}
+.hero-side{padding:28px;display:flex;flex-direction:column}
+.section-title{font-size:13px;color:#cbd4e2;letter-spacing:.18em;text-transform:uppercase;margin-bottom:18px}
+.role-grid{display:grid;gap:12px}
+.role-card{padding:18px;border:1px solid var(--line);background:#0a1424;display:flex;justify-content:space-between;align-items:center;transition:.18s;cursor:pointer}
+.role-card:hover{border-color:rgba(217,182,111,.4);transform:translateY(-1px)}
+.role-card strong{display:block}
+.role-card span{display:block;color:var(--muted);font-size:12px;margin-top:5px}
+.arrow{color:var(--gold);font-size:20px}
+.button,button{appearance:none;border:0;cursor:pointer;font:inherit}
+.primary,.secondary,.ghost,.team-button{border-radius:10px;padding:13px 18px;font-weight:800;transition:.18s}
+.primary{background:linear-gradient(135deg,#e1c07e,#b78b42);color:#12100b;box-shadow:0 10px 28px rgba(183,139,66,.22)}
+.primary:hover{transform:translateY(-1px);filter:brightness(1.05)}
+.secondary{background:#16253b;color:#f3f6fb;border:1px solid rgba(102,168,255,.18)}
+.secondary:hover{border-color:rgba(102,168,255,.45)}
+.ghost{background:transparent;color:#c0cad8;border:1px solid var(--line)}
+.ghost:hover{background:rgba(255,255,255,.04)}
+.danger{color:#ff9399;border-color:rgba(228,82,93,.22)}
+.small{padding:8px 11px;font-size:12px;border-radius:8px}
+.disabled{opacity:.35;pointer-events:none}
+.panel{padding:24px;border-radius:14px}
+.panel + .panel{margin-top:18px}
+.page-head{display:flex;align-items:end;justify-content:space-between;gap:18px;margin:4px 0 24px}
+.page-head h2{font-size:32px;margin:0}
+.page-head p{margin:6px 0 0;color:var(--muted)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;color:#9facc0;font-size:12px;margin-bottom:7px}
+input,select{width:100%;background:#091322;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px 13px;outline:none}
+input:focus,select:focus{border-color:rgba(217,182,111,.5);box-shadow:0 0 0 3px rgba(217,182,111,.07)}
+.people-list{display:grid;gap:8px;max-height:520px;overflow:auto;padding-right:4px}
+.person-row{display:grid;grid-template-columns:38px 1fr auto;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);background:#091322;border-radius:10px}
+.num{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:#13233a;color:#8fa0b8;font-size:12px}
+.icon-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:transparent;color:#a8b4c4}
+.icon-btn:hover{background:rgba(255,255,255,.05)}
+.team-card{position:relative;overflow:hidden;padding:24px;border-radius:14px;border:1px solid var(--line);background:linear-gradient(180deg,#101d30,#0a1424)}
+.team-card:before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--team,#d9b66f)}
+.team-tag{font-size:10px;letter-spacing:.2em;color:var(--muted)}
+.team-name{font-size:26px;font-weight:900;margin:8px 0 4px}
+.team-leader{color:#b8c4d4;font-size:13px}
+.team-count{margin-top:18px;font-size:12px;color:var(--muted)}
+.team-roster{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:#0a1424;border:1px solid var(--line);border-radius:999px;padding:7px 10px;font-size:12px}
+.draft-layout{display:grid;grid-template-columns:320px 1fr;gap:18px}
+.sidebar{display:flex;flex-direction:column;gap:14px}
+.status-box{padding:18px;border-radius:14px;border:1px solid var(--line);background:#0a1424}
+.status-label{font-size:10px;letter-spacing:.16em;color:var(--muted)}
+.status-value{font-size:24px;font-weight:900;margin-top:7px}
+.candidate-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+.candidate{border:1px solid var(--line);background:#0a1424;border-radius:11px;padding:14px;text-align:left;color:var(--text);transition:.18s}
+.candidate:hover{border-color:rgba(217,182,111,.42);transform:translateY(-1px)}
+.candidate.selected{border-color:var(--gold);background:rgba(217,182,111,.08)}
+.candidate.locked{opacity:.38;pointer-events:none}
+.candidate .cand-no{font-size:10px;color:var(--muted)}
+.candidate .cand-name{font-size:16px;font-weight:800;margin-top:7px}
+.selection-bar{position:sticky;bottom:16px;margin-top:18px;padding:16px;border:1px solid rgba(217,182,111,.28);background:rgba(9,19,34,.94);backdrop-filter:blur(12px);border-radius:14px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.selection-bar strong{color:var(--gold2)}
+.spectator-stage{min-height:610px;position:relative;overflow:hidden;border:1px solid var(--line);background:
+ radial-gradient(circle at 50% 35%, rgba(217,182,111,.11), transparent 28%),
+ linear-gradient(180deg,#0b1627,#060d18);box-shadow:var(--shadow)}
+.stage-top{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--line)}
+.live{font-size:11px;letter-spacing:.18em;color:#ff777f}
+.stage-center{min-height:430px;display:grid;place-items:center;text-align:center;padding:36px}
+.round-label{font-size:14px;letter-spacing:.28em;color:var(--gold);font-weight:800}
+.stage-title{font-size:clamp(38px,7vw,88px);font-weight:950;line-height:1.05;margin:18px 0}
+.stage-sub{color:#9fafc4;font-size:16px}
+.reveal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;width:min(100%,1000px);margin:28px auto 0}
+.reveal-card{padding:22px;border:1px solid var(--line);background:rgba(10,20,36,.74);min-height:130px;display:flex;flex-direction:column;justify-content:center}
+.reveal-team{font-size:11px;color:var(--muted);letter-spacing:.16em}
+.reveal-name{font-size:24px;font-weight:900;margin-top:10px}
+.reveal-card.conflict{border-color:rgba(228,82,93,.55);box-shadow:0 0 30px rgba(228,82,93,.12)}
+.reveal-card.winner{border-color:rgba(217,182,111,.75);box-shadow:0 0 42px rgba(217,182,111,.2);animation:pulseGold 1.4s ease-in-out infinite}
+@keyframes pulseGold{50%{transform:translateY(-4px);box-shadow:0 0 62px rgba(217,182,111,.28)}}
+.stage-footer{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line)}
+.stage-team{padding:16px 20px;border-right:1px solid var(--line)}
+.stage-team:last-child{border-right:0}
+.stage-team strong{display:block}
+.stage-team span{font-size:11px;color:var(--muted)}
+.admin-actions{display:flex;gap:10px;flex-wrap:wrap}
+.callout{padding:14px 16px;border-left:3px solid var(--gold);background:rgba(217,182,111,.06);color:#c7d1df;font-size:13px;line-height:1.7}
+.log{max-height:300px;overflow:auto;display:grid;gap:8px}
+.log-item{font-size:12px;color:#b3c0d0;padding:10px 12px;background:#091322;border:1px solid var(--line);border-radius:9px}
+.modal-back{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;display:grid;place-items:center;padding:24px}
+.modal{width:min(560px,100%);border:1px solid var(--line);background:#0b1627;box-shadow:0 28px 80px rgba(0,0,0,.55);padding:28px;border-radius:16px}
+.modal h3{font-size:26px;margin:0 0 10px}
+.modal p{color:var(--muted);line-height:1.8}
+.lottery-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
+.lottery-card{height:118px;border:1px solid var(--line);background:#091322;color:var(--text);border-radius:12px;font-weight:900}
+.lottery-card:hover{border-color:var(--gold)}
+.toast{position:fixed;right:22px;bottom:22px;z-index:200;background:#111e32;border:1px solid var(--line);padding:14px 18px;border-radius:12px;box-shadow:var(--shadow);animation:toastIn .18s ease}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}}
+.sep{height:1px;background:var(--line);margin:20px 0}
+.muted{color:var(--muted)}
+.empty{padding:34px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
+@media(max-width:980px){
+  .hero,.grid-2,.draft-layout{grid-template-columns:1fr}
+  .grid-3,.candidate-grid,.reveal-grid{grid-template-columns:1fr 1fr}
+  .hero-main{padding:38px}
+}
+@media(max-width:680px){
+  .topbar{height:64px;padding:0 14px}
+  .app{padding:22px 14px 70px}
+  .brand-sub{display:none}
+  .sync-badge{display:none}
+  .hero-main{min-height:auto;padding:30px 22px}
+  h1{font-size:48px}
+  .grid-3,.candidate-grid,.reveal-grid,.form-row{grid-template-columns:1fr}
+  .page-head{align-items:flex-start;flex-direction:column}
+  .stage-footer{grid-template-columns:1fr}
+  .stage-team{border-right:0;border-bottom:1px solid var(--line)}
+  .stage-team:last-child{border-bottom:0}
+  .selection-bar{align-items:stretch;flex-direction:column}
+  .top-actions .small{font-size:10px;padding:7px 8px}
+}
+
+
+/* v0.5 envelope lottery */
+.lottery-summary{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0}.lottery-summary span{padding:7px 10px;border-radius:999px;border:1px solid #6e5627;background:#171207;color:var(--gold2);font-weight:800}.lottery-summary b{color:#9da9bd;font-size:.72rem}
+.lottery-overlay{position:fixed;inset:0;z-index:110;display:none;place-items:center;overflow:auto;padding:20px}.lottery-overlay.show{display:grid}.lottery-backdrop{position:absolute;inset:0;background:radial-gradient(circle at 50% 30%,rgba(239,181,71,.14),transparent 28rem),linear-gradient(145deg,#02040a,#0a1020 58%,#211505);backdrop-filter:blur(6px)}
+.lottery-stage{position:relative;width:min(1050px,96vw);min-height:min(720px,92vh);border:1px solid #866728;border-radius:24px;background:linear-gradient(155deg,rgba(16,24,42,.98),rgba(24,18,8,.98));box-shadow:0 30px 90px rgba(0,0,0,.65);padding:clamp(18px,4vw,42px);text-align:center;overflow:hidden}.lottery-stage:before,.lottery-stage:after{content:"";position:absolute;left:-10%;width:120%;height:2px;background:linear-gradient(90deg,transparent,#d7a440,transparent);opacity:.5}.lottery-stage:before{top:16%;transform:rotate(-3deg)}.lottery-stage:after{bottom:14%;transform:rotate(3deg)}
+.lottery-topline{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:10px}.lottery-competition{position:relative;z-index:2;color:#ffce73;font-size:clamp(1rem,3vw,1.5rem);font-weight:900;letter-spacing:.15em;margin-top:35px}.lottery-target{position:relative;z-index:2;font-size:clamp(2.8rem,9vw,6.8rem);line-height:1.05;margin:10px 0 16px;text-shadow:0 12px 45px rgba(0,0,0,.65)}.lottery-status{position:relative;z-index:2;min-height:2em;color:#d8deea;font-size:clamp(1rem,2.3vw,1.35rem);font-weight:700}.lottery-board{position:relative;z-index:2;margin-top:26px}
+.shuffle-deck{height:230px;display:grid;place-items:center;position:relative;margin-bottom:18px}.envelope{position:relative;width:min(260px,70vw);height:160px;border:0;border-radius:10px;background:linear-gradient(145deg,#f2e6c6,#d7c49b);color:#352811;box-shadow:0 18px 45px rgba(0,0,0,.38);display:grid;place-items:center;font-weight:1000;letter-spacing:.12em;overflow:hidden}.envelope:before,.envelope:after{content:"";position:absolute;inset:auto 0 0;height:70%;clip-path:polygon(0 100%,50% 20%,100% 100%);background:rgba(152,125,72,.16)}.envelope:after{inset:0 0 auto;height:65%;clip-path:polygon(0 0,50% 80%,100% 0);background:rgba(255,255,255,.28)}.envelope span,.envelope small{position:relative;z-index:2}.envelope.demo{position:absolute;transform:translateX(calc((var(--i) - 1) * 38px)) rotate(calc((var(--i) - 1) * 4deg))}.lottery-overlay.shuffling .envelope.demo:nth-child(1){animation:shuffleA .48s ease-in-out infinite alternate}.lottery-overlay.shuffling .envelope.demo:nth-child(2){animation:shuffleB .42s ease-in-out infinite alternate}.lottery-overlay.shuffling .envelope.demo:nth-child(3){animation:shuffleC .52s ease-in-out infinite alternate}.lottery-main-btn{font-size:1.08rem;padding:13px 22px}
+.envelope-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;max-width:1080px;margin:0 auto}.envelope.pickable{width:100%;height:180px;transition:.18s}.envelope.pickable:hover{transform:translateY(-9px) scale(1.025);box-shadow:0 25px 60px rgba(239,181,71,.22)}.envelope.pickable small{display:block;font-weight:700;letter-spacing:0;margin-top:8px;opacity:.7}.envelope.taken{width:100%;height:180px;opacity:.24;filter:grayscale(1)}
+.selection-ledger{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:24px auto 0;max-width:1000px}.selection-ledger div{border:1px solid #35425c;border-radius:10px;padding:10px;background:#0d1527}.selection-ledger b,.selection-ledger span{display:block}.selection-ledger span{color:#9eabc0;font-size:.78rem;margin-top:3px}
+.owned-envelopes{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;max-width:1080px;margin:0 auto}.owned-envelope{min-height:235px;border:1px solid #a58a51;border-radius:16px;background:linear-gradient(145deg,#efe1be,#cdb98c);color:#30240e;display:grid;align-content:center;gap:10px;padding:18px;box-shadow:0 18px 45px rgba(0,0,0,.34);position:relative;overflow:hidden}.owned-envelope:before{content:"";position:absolute;left:0;right:0;top:0;height:43%;background:rgba(255,255,255,.28);clip-path:polygon(0 0,50% 100%,100% 0)}.owned-envelope .owner,.owned-envelope .paper,.owned-envelope small{position:relative;z-index:2}.owned-envelope .owner{font-size:1rem;font-weight:900}.owned-envelope .paper{font-size:clamp(1.25rem,3vw,2rem);font-weight:1000}.owned-envelope small{opacity:.68}.owned-envelope.lose{background:linear-gradient(145deg,#d6d9dd,#9ca3ad);color:#30343a;filter:saturate(.55)}.owned-envelope.win{background:linear-gradient(145deg,#fff1a5,#d99a24);color:#3a2604;border-color:#ffd45e;box-shadow:0 0 0 3px rgba(255,210,76,.2),0 18px 65px rgba(239,181,71,.42);animation:winnerPulse .8s ease infinite alternate}.lottery-overlay.drumroll .lottery-stage{animation:stageTension .11s linear infinite alternate}
+.confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}.confetti i{position:absolute;top:-20px;width:10px;height:18px;background:hsl(calc(var(--spin) / 4),80%,60%);animation:confettiFall 2.6s var(--delay) ease-in forwards}.confetti i:nth-child(3n){border-radius:50%}.confetti i:nth-child(4n){width:16px;height:8px}
+@keyframes shuffleA{from{transform:translate(-80px,-8px) rotate(-9deg)}to{transform:translate(85px,12px) rotate(9deg)}}@keyframes shuffleB{from{transform:translate(65px,10px) rotate(7deg)}to{transform:translate(-72px,-12px) rotate(-7deg)}}@keyframes shuffleC{from{transform:translate(-30px,16px) rotate(-5deg)}to{transform:translate(35px,-16px) rotate(5deg)}}@keyframes winnerPulse{from{transform:scale(1)}to{transform:scale(1.035)}}@keyframes stageTension{from{transform:translateX(-1px)}to{transform:translateX(1px)}}@keyframes confettiFall{0%{transform:translate(0,-30px) rotate(0);opacity:0}10%{opacity:1}100%{transform:translate(var(--drift),105vh) rotate(var(--spin));opacity:.9}}
+@media(max-width:760px){.lottery-stage{min-height:94vh}.lottery-topline{align-items:flex-start;flex-direction:column}.envelope-grid,.owned-envelopes,.selection-ledger{grid-template-columns:1fr}.shuffle-deck{height:190px}.envelope.pickable,.envelope.taken{height:135px}.owned-envelope{min-height:155px}}
+
+
+/* Ver.2.4 Admin PIN lock */
+.pin-overlay{
+  position:fixed;inset:0;z-index:300;display:none;place-items:center;padding:22px;
+  background:rgba(3,8,16,.82);backdrop-filter:blur(12px)
+}
+.pin-overlay.show{display:grid}
+.pin-dialog{
+  width:min(430px,100%);border:1px solid rgba(217,182,111,.28);border-radius:18px;
+  padding:28px;background:linear-gradient(180deg,#101b2d,#091321);box-shadow:0 30px 100px rgba(0,0,0,.55)
+}
+.pin-lock-icon{
+  width:58px;height:58px;margin:0 auto 16px;border-radius:50%;display:grid;place-items:center;
+  font-size:25px;background:rgba(217,182,111,.09);border:1px solid rgba(217,182,111,.28)
+}
+.pin-dialog h3{text-align:center;margin:0 0 8px;font-size:25px}
+.pin-dialog p{text-align:center;color:var(--muted);line-height:1.7;font-size:13px}
+.pin-input{
+  text-align:center;font-size:26px;letter-spacing:.35em;font-weight:900;margin-top:14px
+}
+.pin-error{min-height:20px;margin-top:9px;text-align:center;color:#ff8d95;font-size:12px}
+.pin-actions{display:flex;gap:10px;margin-top:12px}
+.pin-actions button{flex:1}
+
+
+/* Ver.3.0 all-in prototype */
+.event-name-input{font-size:20px;font-weight:900;letter-spacing:.03em}
+.resume-banner{margin-bottom:18px;padding:16px 18px;border:1px solid rgba(83,194,139,.3);border-radius:13px;background:rgba(83,194,139,.07);display:flex;justify-content:space-between;gap:16px;align-items:center}
+.resume-banner strong{display:block}.resume-banner span{font-size:12px;color:var(--muted)}
+.draft-board{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:#091322}
+.draft-board th,.draft-board td{padding:12px 10px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.draft-board th:last-child,.draft-board td:last-child{border-right:0}.draft-board tr:last-child td{border-bottom:0}
+.draft-board th{font-size:11px;letter-spacing:.12em;color:var(--muted);background:#0d192a}
+.board-name{font-weight:900}.board-badge{display:inline-block;margin-top:5px;padding:3px 7px;border-radius:999px;font-size:9px;letter-spacing:.08em;border:1px solid var(--line);color:var(--muted)}
+.board-badge.win{color:#f0cf84;border-color:rgba(217,182,111,.48);background:rgba(217,182,111,.08)}
+.board-badge.lose{color:#ff969d;border-color:rgba(228,82,93,.35)}
+.board-hidden{color:#5e6c80;font-weight:800;letter-spacing:.18em}
+.live-reveal-card{position:relative;overflow:hidden;transition:.45s;min-height:150px}
+.live-reveal-card.hidden-pick .reveal-name{filter:blur(9px);opacity:.16;user-select:none}
+.live-reveal-card.just-revealed{animation:revealHit .62s cubic-bezier(.16,.8,.25,1)}
+@keyframes revealHit{0%{transform:scale(.82);opacity:.1}55%{transform:scale(1.055)}100%{transform:scale(1);opacity:1}}
+.broadcast-flash{animation:broadcastFlash .8s ease}
+@keyframes broadcastFlash{0%{box-shadow:inset 0 0 0 0 rgba(217,182,111,0)}35%{box-shadow:inset 0 0 90px rgba(217,182,111,.14)}100%{box-shadow:inset 0 0 0 rgba(217,182,111,0)}}
+.opening-logo{font-size:clamp(48px,9vw,112px);font-weight:950;letter-spacing:-.055em;animation:openingIn 1.2s cubic-bezier(.16,.8,.25,1)}
+@keyframes openingIn{0%{opacity:0;transform:scale(.78);letter-spacing:.08em}100%{opacity:1;transform:scale(1);letter-spacing:-.055em}}
+.paused-screen{color:#ffbd73}.paused-screen .stage-title{font-size:clamp(48px,8vw,96px)}
+.emergency-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.emergency-grid button{width:100%}
+.force-grid{display:grid;grid-template-columns:1fr 1.3fr auto;gap:10px;align-items:end;margin-top:12px}
+.confirm-overlay{position:fixed;inset:0;z-index:360;display:grid;place-items:center;padding:20px;background:rgba(2,7,14,.82);backdrop-filter:blur(10px)}
+.confirm-card{width:min(500px,100%);padding:28px;border-radius:18px;border:1px solid rgba(217,182,111,.3);background:#0b1627;box-shadow:0 30px 90px rgba(0,0,0,.58);text-align:center}
+.confirm-card .confirm-name{font-size:34px;font-weight:950;margin:18px 0;color:var(--gold2)}
+.confirm-actions{display:flex;gap:10px;margin-top:20px}.confirm-actions button{flex:1}
+.rep-lottery{padding:22px;border-radius:14px;border:1px solid rgba(217,182,111,.25);background:radial-gradient(circle at 50% 0,rgba(217,182,111,.08),transparent 45%),#091322}
+.rep-lottery .envelope-grid{margin-top:16px}
+.spectator-lottery-status{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-top:24px}.spectator-lottery-status .chip{font-size:13px}
+.complete-rosters{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;width:min(100%,1100px);margin:26px auto 0}.complete-rosters .team-card{text-align:left}
+.result-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.autosave-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:6px}.hook-box{font-size:12px;color:var(--muted);padding:12px;border:1px dashed var(--line);border-radius:10px}
+@media(max-width:800px){.emergency-grid{grid-template-columns:1fr 1fr}.force-grid{grid-template-columns:1fr}.complete-rosters{grid-template-columns:1fr}.draft-board th,.draft-board td{padding:9px 7px;font-size:12px}}
+
+
+/* Ver.3.1 AivisSpeech */
+.voice-panel{border-color:rgba(102,168,255,.25)!important}
+.voice-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.voice-grid .full{grid-column:1/-1}
+.voice-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.voice-status{
+  display:flex;align-items:center;gap:9px;padding:11px 13px;border-radius:10px;margin-top:12px;
+  border:1px solid var(--line);background:rgba(255,255,255,.025);font-size:12px;color:var(--muted)
+}
+.voice-status-dot{width:9px;height:9px;border-radius:50%;background:#6f7f96;flex:0 0 auto}
+.voice-status.ok .voice-status-dot{background:var(--green);box-shadow:0 0 13px rgba(83,194,139,.65)}
+.voice-status.bad .voice-status-dot{background:var(--red)}
+.voice-status.busy .voice-status-dot{background:var(--gold);animation:voicePulse .85s infinite alternate}
+@keyframes voicePulse{to{opacity:.35;transform:scale(.75)}}
+.voice-live{
+  display:inline-flex;align-items:center;gap:7px;padding:5px 9px;border:1px solid rgba(102,168,255,.22);
+  border-radius:999px;font-size:10px;letter-spacing:.08em;color:#a9caff;background:rgba(102,168,255,.06)
+}
+.voice-live.off{color:var(--muted);border-color:var(--line);background:rgba(255,255,255,.025)}
+.voice-note{font-size:11px;line-height:1.75;color:var(--muted);margin-top:10px}
+@media(max-width:680px){.voice-grid{grid-template-columns:1fr}.voice-grid .full{grid-column:auto}}
+
+
+.aida-preset{
+  margin-top:14px;padding:14px;border-radius:12px;
+  background:rgba(217,182,111,.06);border:1px solid rgba(217,182,111,.22)
+}
+.aida-preset-title{display:flex;align-items:center;gap:9px;font-weight:800;color:var(--gold2)}
+.aida-preset-sub{margin-top:6px;font-size:11px;line-height:1.7;color:var(--muted)}
+.voice-param-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.voice-param-grid label{font-size:11px;color:var(--muted)}
+.voice-param-grid input{margin-top:6px}
+@media(max-width:680px){.voice-param-grid{grid-template-columns:1fr 1fr}}
+
+
+/* =========================================================
+   Ver.3.3 NYOUNCER THEME
+   ========================================================= */
+:root{
+  --ny-ink:#202523;
+  --ny-ink2:#30342f;
+  --ny-cream:#f8efdd;
+  --ny-paper:#fffaf0;
+  --ny-paper2:#f4e5ca;
+  --ny-gold:#d99b2b;
+  --ny-gold2:#ffca62;
+  --ny-brown:#6e4b2d;
+  --ny-line:rgba(76,57,31,.16);
+  --ny-shadow:0 16px 45px rgba(67,47,24,.14);
+  --bg:#f3ead8;
+  --panel:#fffaf0;
+  --panel2:#f8efdd;
+  --line:var(--ny-line);
+  --text:#272a27;
+  --muted:#756e64;
+  --gold:#d99b2b;
+  --gold2:#b97813;
+  --shadow:var(--ny-shadow);
+}
+html,body{
+  background:
+    radial-gradient(circle at 15% 12%,rgba(255,207,111,.22),transparent 24%),
+    radial-gradient(circle at 86% 4%,rgba(87,151,201,.12),transparent 22%),
+    linear-gradient(180deg,#f8f0e0,#f1e5d0 58%,#eadcc2);
+  color:var(--text);
+}
+.noise{opacity:.018}
+body:before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    radial-gradient(circle,rgba(185,132,45,.10) 0 3px,transparent 3.5px);
+  background-size:86px 86px;
+  background-position:28px 22px;
+  mask-image:linear-gradient(90deg,rgba(0,0,0,.18),transparent 38%,transparent 65%,rgba(0,0,0,.14));
+}
+.ny-sidebar{
+  position:fixed;left:0;top:0;bottom:0;width:226px;z-index:70;
+  padding:24px 18px 20px;background:
+    radial-gradient(circle at 40% 4%,rgba(217,155,43,.13),transparent 18%),
+    linear-gradient(180deg,#1e2422,#151a19);
+  color:#fff;border-right:1px solid rgba(255,202,98,.28);
+  box-shadow:10px 0 35px rgba(31,25,16,.12);
+  display:flex;flex-direction:column
+}
+.ny-side-logo{text-align:center;padding:5px 6px 24px;border-bottom:1px solid rgba(255,255,255,.08)}
+.ny-side-logo-icon{font-size:28px;filter:drop-shadow(0 3px 8px rgba(0,0,0,.2))}
+.ny-side-logo-title{margin-top:7px;font-size:23px;font-weight:950;letter-spacing:.03em;color:#ffd16c}
+.ny-side-logo-sub{font-size:10px;letter-spacing:.24em;color:#e8d5ae;margin-top:2px}
+.ny-side-nav{display:grid;gap:9px;margin-top:22px}
+.ny-side-nav button{
+  width:100%;display:flex;align-items:center;gap:12px;text-align:left;padding:13px 14px;
+  border-radius:12px;color:#ece7dc;background:transparent;border:1px solid transparent;font-weight:800
+}
+.ny-side-nav button:hover{background:rgba(255,202,98,.10);border-color:rgba(255,202,98,.22);transform:translateX(2px)}
+.ny-side-nav button:first-child{background:linear-gradient(135deg,#ffd376,#e4a53b);color:#22251f}
+.ny-guild-badge{
+  margin-top:auto;padding:15px 12px;text-align:center;border-radius:14px;border:1px solid rgba(255,202,98,.3);
+  background:rgba(255,195,84,.07)
+}
+.ny-guild-badge small{display:block;color:#d9c69f;font-size:10px;letter-spacing:.12em}
+.ny-guild-badge strong{display:block;color:#ffd16c;margin-top:6px;font-size:17px}
+.topbar{
+  left:226px;height:68px;padding:0 26px;background:rgba(255,250,240,.88);
+  border-bottom:1px solid var(--ny-line);box-shadow:0 6px 24px rgba(84,59,24,.06)
+}
+.brand-mark{
+  width:42px;height:42px;border-radius:13px;background:#222825;color:#ffd16c;
+  border:2px solid #e4aa41;box-shadow:none;font-size:20px
+}
+.brand-title{color:#242824;font-weight:950;letter-spacing:.04em}
+.brand-catline{font-size:9px;padding:3px 6px;border-radius:999px;background:#242824;color:#ffd16c;vertical-align:2px}
+.brand-sub{color:#a56c13;letter-spacing:.16em}
+.sync-badge{color:#4d8a67}
+.app{max-width:1520px;margin-left:226px;padding:30px 30px 86px}
+.hero{grid-template-columns:minmax(0,1.35fr) minmax(320px,.65fr);gap:20px}
+.hero-main,.hero-side,.panel,.glass{
+  border:1px solid var(--ny-line);
+  box-shadow:var(--ny-shadow);
+}
+.hero-main{
+  min-height:470px;border-radius:28px;padding:42px 44px;
+  background:
+    radial-gradient(circle at 78% 20%,rgba(255,208,112,.25),transparent 25%),
+    linear-gradient(145deg,#fff9ec,#f4e3c5);
+}
+.hero-main:after{content:"🐾";right:20px;bottom:-42px;font-size:180px;color:rgba(180,126,35,.07)}
+.hero-side{
+  border-radius:28px;padding:25px;background:linear-gradient(180deg,#242a27,#191e1c);color:#fff
+}
+.hero-side .section-title{color:#ffd16c}
+.hero-side .role-card{
+  background:#303531;border-color:rgba(255,255,255,.09);border-radius:14px;color:#fff
+}
+.hero-side .role-card:hover{border-color:rgba(255,202,98,.45);background:#373c37}
+.hero-side .role-card span{color:#c9c6bd}
+.hero-side .arrow{color:#ffd16c}
+.hero-copy{color:#655e54;font-size:15px}
+.hero-actions{position:relative;z-index:4}
+.ny-home-grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;align-items:center}
+.ny-home-copy h1{font-size:clamp(42px,5.6vw,76px);color:#202523;line-height:.95;margin:16px 0}
+.ny-home-copy h1 .ny-accent{color:#b97613}
+.ny-home-copy .ny-subtitle{
+  display:inline-flex;gap:7px;align-items:center;background:#202523;color:#ffd16c;
+  border-radius:999px;padding:7px 11px;font-size:11px;font-weight:900;letter-spacing:.12em
+}
+.ny-home-mascot{position:relative;min-height:370px;display:flex;align-items:flex-end;justify-content:center}
+.nyouncer-img{
+  position:relative;z-index:2;width:min(100%,350px);max-height:390px;object-fit:contain;
+  filter:drop-shadow(0 18px 16px rgba(62,42,22,.22));transform-origin:50% 90%
+}
+.ny-speech{
+  position:absolute;z-index:3;top:12px;right:-8px;width:min(280px,78%);
+  background:#fffdf8;border:2px solid #252926;border-radius:22px;padding:16px 18px;
+  color:#242824;font-weight:850;font-size:14px;line-height:1.65;
+  box-shadow:0 10px 24px rgba(69,50,24,.12)
+}
+.ny-speech:after{
+  content:"";position:absolute;bottom:-14px;left:34%;width:22px;height:22px;background:#fffdf8;
+  border-right:2px solid #252926;border-bottom:2px solid #252926;transform:rotate(45deg)
+}
+.ny-namechip{
+  position:absolute;z-index:5;bottom:4px;left:50%;transform:translateX(-50%);
+  background:#202523;color:#ffd16c;border:2px solid #d99b2b;border-radius:999px;
+  padding:7px 15px;font-size:12px;font-weight:950;white-space:nowrap
+}
+body.ny-speaking .nyouncer-img{animation:nyTalk .34s ease-in-out infinite alternate}
+body.ny-speaking .ny-speech{box-shadow:0 0 0 5px rgba(217,155,43,.12),0 10px 24px rgba(69,50,24,.12)}
+@keyframes nyTalk{from{transform:translateY(0) rotate(-.35deg)}to{transform:translateY(-6px) rotate(.35deg)}}
+.kicker{color:#af741a;font-weight:950}
+.section-title{color:#604c31;font-weight:950}
+.page-head h2{color:#252925}
+.page-head p{color:#756e64}
+.panel{border-radius:18px;background:rgba(255,250,240,.92)}
+.status-box,.person-row,.candidate,.log-item{
+  background:#fffdf8;border-color:var(--ny-line)
+}
+.status-box{box-shadow:inset 0 0 0 1px rgba(255,255,255,.55)}
+.status-label,.team-tag{color:#8a795f}
+.status-value,.cand-name{color:#252925}
+input,select{
+  background:#fffdf8;color:#252925;border-color:rgba(83,61,30,.19)
+}
+input:focus,select:focus{border-color:#d99b2b;box-shadow:0 0 0 3px rgba(217,155,43,.12)}
+.primary{
+  background:linear-gradient(135deg,#ffd26d,#e3a73c);color:#24251f;border:1px solid #d39b38;
+  box-shadow:0 9px 22px rgba(195,132,33,.20)
+}
+.secondary{background:#252b28;color:#fff;border-color:#252b28}
+.secondary:hover{border-color:#d99b2b}
+.ghost{color:#514c44;border-color:rgba(80,59,31,.20);background:rgba(255,255,255,.35)}
+.ghost:hover{background:#fff9ec}
+.danger{color:#c45256;border-color:rgba(196,82,86,.25)}
+.team-card{
+  border-radius:17px;background:
+    radial-gradient(circle at 90% 12%,color-mix(in srgb,var(--team) 14%,transparent),transparent 30%),
+    linear-gradient(180deg,#fffdf8,#f9eedb);
+  border-color:var(--ny-line)
+}
+.team-card:after{
+  content:"🐾";position:absolute;right:16px;top:12px;font-size:26px;opacity:.11;color:var(--team)
+}
+.team-name{color:#252925}
+.team-leader{color:#70685d}
+.chip{background:#fff8e9;border-color:rgba(84,61,26,.14);color:#413a31}
+.callout{background:#fff4d9;color:#554b3f;border-left-color:#d99b2b;border-radius:0 12px 12px 0}
+.candidate-grid{gap:12px}
+.candidate{
+  min-height:92px;border-radius:16px;position:relative;overflow:hidden;background:#fff7e6
+}
+.candidate:nth-child(5n+1){background:#fff0ce}
+.candidate:nth-child(5n+2){background:#eaf4ff}
+.candidate:nth-child(5n+3){background:#edf6dd}
+.candidate:nth-child(5n+4){background:#ffe9ed}
+.candidate:nth-child(5n){background:#f1e9ff}
+.candidate:after{content:"🐾";position:absolute;right:9px;bottom:4px;font-size:26px;opacity:.08}
+.candidate:hover{border-color:#d99b2b;transform:translateY(-2px);box-shadow:0 8px 18px rgba(91,63,23,.10)}
+.candidate.selected{border-color:#d99b2b;background:#fff0c7;box-shadow:0 0 0 3px rgba(217,155,43,.12)}
+.selection-bar{background:rgba(255,250,240,.94);border-color:rgba(217,155,43,.35)}
+.selection-bar strong{color:#a7640e}
+.sidebar .nyouncer-tip{
+  display:grid;grid-template-columns:72px 1fr;align-items:center;gap:10px;padding:12px;
+  background:#242a27;border-radius:16px;color:#fff;border:1px solid rgba(255,202,98,.25)
+}
+.nyouncer-tip img{width:72px;height:72px;object-fit:contain;filter:drop-shadow(0 5px 7px rgba(0,0,0,.25))}
+.nyouncer-tip strong{display:block;color:#ffd16c;font-size:12px}
+.nyouncer-tip span{display:block;color:#efebe2;font-size:11px;line-height:1.55;margin-top:4px}
+.spectator-stage{
+  min-height:650px;border-radius:24px;border-color:rgba(73,52,25,.16);
+  background:
+    radial-gradient(circle at 70% 28%,rgba(255,208,112,.22),transparent 24%),
+    linear-gradient(145deg,#fff8e8,#f3e2c2);
+  color:#252925
+}
+.stage-top{background:#232926;color:#fff;border-bottom-color:rgba(255,255,255,.08)}
+.stage-top strong{color:#ffd16c}
+.live{color:#ff7a75}
+.stage-center{padding:42px 310px 42px 44px;text-align:left;place-items:center start}
+.round-label{color:#a96b10}
+.stage-title{color:#242824}
+.stage-sub{color:#776d60}
+.stage-footer{background:#242a27;border-top-color:rgba(255,255,255,.08);color:#fff}
+.stage-team{border-right-color:rgba(255,255,255,.08)}
+.stage-team span{color:#cbc7be}
+.reveal-card{background:#fffaf0;border-color:var(--ny-line);border-radius:16px}
+.reveal-team{color:#857760}
+.reveal-name{color:#252925}
+.ny-broadcast-mascot{
+  position:absolute;right:28px;bottom:91px;width:300px;z-index:4;pointer-events:none
+}
+.ny-broadcast-mascot .nyouncer-img{width:100%;max-height:365px}
+.ny-broadcast-mascot .ny-speech{top:-6px;right:110px;width:255px}
+.ny-broadcast-mascot .ny-namechip{bottom:0}
+.round-label,.stage-title,.stage-sub{position:relative;z-index:2}
+.opening-logo{
+  color:#242824;text-shadow:none;background:linear-gradient(135deg,#d99022,#f0c55d);
+  -webkit-background-clip:text;background-clip:text
+}
+.draft-board{background:#fffdf8}
+.draft-board th{background:#242a27!important;color:#ffd16c!important}
+.draft-board td{border-color:rgba(92,67,31,.12)!important;color:#423a31!important}
+.board-badge{background:#f5e4c3!important;color:#72572e!important}
+.board-badge.win{background:#e9f5da!important;color:#4c7138!important}
+.board-badge.lose{background:#f8e0df!important;color:#994c4c!important}
+.resume-banner{
+  border-radius:16px!important;background:#252b28!important;color:#fff!important;border-color:rgba(255,202,98,.25)!important
+}
+.hook-box{background:#fff4dc!important;border-color:rgba(217,155,43,.25)!important;color:#5e5446!important}
+.voice-panel{background:#fffaf0!important}
+.aida-preset{background:#fff1cc!important;border-color:rgba(217,155,43,.26)!important}
+.voice-status{background:#fffdf8!important}
+.ny-corner-paw{
+  position:absolute;right:18px;top:14px;opacity:.11;font-size:30px;pointer-events:none
+}
+.modal{background:#fffaf0;color:#252925;border-color:var(--ny-line)}
+.modal p{color:#756e64}
+.pin-dialog{background:linear-gradient(180deg,#fffaf0,#f5e7cf)!important;color:#252925!important}
+.pin-dialog p{color:#756e64!important}
+.pin-input{background:#fff!important}
+.toast{background:#242a27;color:#fff;border-color:rgba(255,202,98,.22)}
+.lottery-stage{border-radius:24px!important}
+@media(max-width:1180px){
+  .ny-home-grid{grid-template-columns:1fr 300px}
+  .stage-center{padding-right:270px}
+  .ny-broadcast-mascot{width:260px}
+}
+@media(max-width:980px){
+  .ny-sidebar{width:86px;padding:18px 10px}
+  .ny-side-logo-title,.ny-side-logo-sub,.ny-side-nav span,.ny-guild-badge{display:none}
+  .ny-side-nav button{justify-content:center;font-size:20px;padding:12px}
+  .topbar{left:86px}
+  .app{margin-left:86px}
+  .ny-home-grid{grid-template-columns:1fr}
+  .ny-home-mascot{min-height:320px}
+  .stage-center{padding:36px 30px 330px;text-align:center;place-items:center}
+  .ny-broadcast-mascot{width:280px;right:50%;transform:translateX(50%);bottom:90px}
+  .ny-broadcast-mascot .ny-speech{right:auto;left:-35px;top:-25px}
+}
+@media(max-width:680px){
+  .ny-sidebar{
+    top:auto;right:0;width:auto;height:64px;padding:7px 10px;display:block;border-right:0;
+    border-top:1px solid rgba(255,202,98,.24)
+  }
+  .ny-side-logo{display:none}
+  .ny-side-nav{margin:0;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .ny-side-nav button{padding:10px 7px;font-size:18px}
+  .ny-side-nav button:first-child{background:rgba(255,202,98,.14);color:#ffd16c}
+  .topbar{left:0;height:62px;padding:0 12px}
+  .brand-title{font-size:13px}
+  .brand-sub{display:block;font-size:8px;letter-spacing:.08em}
+  .top-actions #resetAllBtn{display:none}
+  .app{margin-left:0;padding:20px 12px 90px}
+  .hero-main,.hero-side{border-radius:20px}
+  .hero-main{padding:26px 20px}
+  .ny-home-mascot{min-height:295px}
+  .nyouncer-img{max-height:310px}
+  .ny-speech{right:0;top:0;width:76%;font-size:12px}
+  .stage-center{padding:28px 18px 315px}
+  .ny-broadcast-mascot{width:245px;bottom:82px}
+  .ny-broadcast-mascot .ny-speech{left:-18px;width:210px}
+}
+
+
+/* Ver.3.4: separated Nyouncer sprite switching */
+.nyouncer-img{
+  object-fit:contain!important;
+  object-position:center bottom!important;
+  aspect-ratio:1/1;
+}
+.ny-home-mascot .nyouncer-img{width:min(100%,390px);height:390px}
+.ny-broadcast-mascot .nyouncer-img{width:100%;height:auto;aspect-ratio:1/1}
+.nyouncer-tip img{object-fit:contain;object-position:center bottom}
+.ny-pose-label{
+  position:absolute;z-index:6;right:7px;bottom:7px;padding:4px 7px;border-radius:999px;
+  background:rgba(32,37,35,.74);color:#ffd16c;font-size:9px;font-weight:800;
+  opacity:.72;pointer-events:none
+}
+@media(max-width:680px){
+  .ny-home-mascot .nyouncer-img{height:315px}
+}
+
+
+
+@media(max-width:980px){
+  .envelope-grid,.owned-envelopes,.selection-ledger{grid-template-columns:repeat(2,1fr)!important}
+}
+
+/* Ver.4.0 Group Draft */
+.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.group-setup-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.group-setup-card{
+  position:relative;padding:16px;border:1px solid var(--ny-line);border-radius:16px;
+  background:linear-gradient(145deg,#fffdf8,#f7ead3)
+}
+.group-setup-card .group-count{font-size:11px;color:var(--muted);margin-top:7px}
+.group-members-preview{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.group-members-preview span{
+  padding:5px 8px;border-radius:999px;background:#fff5df;border:1px solid rgba(85,62,29,.12);
+  font-size:11px;color:#574b3b
+}
+.member-group-row{
+  display:grid;grid-template-columns:38px minmax(140px,1fr) minmax(150px,.8fr) auto;
+  align-items:center;gap:9px;padding:9px;border:1px solid var(--ny-line);border-radius:12px;background:#fffdf8
+}
+.member-group-row.is-participant{background:#f0eee8;opacity:.82}
+.group-candidate{
+  min-height:128px!important;display:flex;flex-direction:column;justify-content:space-between
+}
+.group-candidate .group-member-list{
+  display:flex;gap:5px;flex-wrap:wrap;margin-top:10px
+}
+.group-candidate .group-member-list span{
+  font-size:10px;padding:4px 7px;border-radius:999px;background:rgba(255,255,255,.72);
+  border:1px solid rgba(64,45,20,.10)
+}
+.group-win-card{
+  margin-top:10px;padding:11px;border-radius:12px;background:#fff4d5;border:1px solid rgba(217,155,43,.20)
+}
+.group-win-card strong{display:block;color:#9a6210}
+.group-win-card span{display:block;font-size:11px;color:#655b4d;margin-top:4px;line-height:1.5}
+.rebid-banner{
+  padding:16px 18px;margin-bottom:18px;border-radius:16px;
+  background:linear-gradient(135deg,#2a302c,#1e2421);color:#fff;border:1px solid rgba(255,202,98,.28)
+}
+.rebid-banner strong{color:#ffd16c}
+.rebid-banner span{display:block;margin-top:5px;font-size:12px;color:#e5dfd1}
+.attempt-list{display:grid;gap:9px}
+.attempt-card{padding:12px;border:1px solid var(--ny-line);border-radius:12px;background:#fffdf8}
+.attempt-head{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.attempt-picks{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.attempt-picks span{font-size:11px;padding:5px 8px;border-radius:999px;background:#f7ecd8}
+.group-board-cell .board-name{font-size:15px}
+.group-board-cell .group-member-mini{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4}
+.setup-warning{margin-top:10px;font-size:11px;color:#a25b27}
+@media(max-width:1180px){.grid-4,.complete-rosters{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:780px){
+  .group-setup-grid{grid-template-columns:1fr}
+  .member-group-row{grid-template-columns:34px 1fr}
+  .member-group-row select,.member-group-row .icon-btn{grid-column:2}
+}
+@media(max-width:680px){.grid-4,.complete-rosters{grid-template-columns:1fr}}
+
+
+/* =========================================================
+   Ver.5.0 ONLINE / CHAT
+   ========================================================= */
+.online-status{
+  display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;
+  font-size:10px;font-weight:900;letter-spacing:.08em;border:1px solid var(--ny-line);
+  background:#fff9eb;color:#665b4c
+}
+.online-status.connected{background:#eaf6eb;color:#397249;border-color:#b8dbbd}
+.online-status.waiting{background:#fff1d5;color:#9a671b;border-color:#e5c98f}
+.online-status.offline{background:#f4ece1;color:#746d64}
+.online-host-panel{
+  padding:18px;border-radius:18px;border:1px solid rgba(217,155,43,.28);
+  background:linear-gradient(135deg,#fff6dc,#fffaf0);box-shadow:var(--ny-shadow);margin-bottom:18px
+}
+.online-link-row{
+  display:grid;grid-template-columns:150px 1fr auto;gap:8px;align-items:center;margin-top:9px
+}
+.online-link-row input{font-size:11px}
+.online-room-code{
+  display:inline-block;padding:8px 13px;border-radius:12px;background:#232926;color:#ffd16c;
+  font-size:22px;font-weight:950;letter-spacing:.15em
+}
+.online-role-chip{
+  padding:5px 8px;border-radius:999px;background:#242a27;color:#ffd16c;font-size:10px;font-weight:900
+}
+.connection-cover{
+  position:fixed;inset:0;z-index:280;background:rgba(28,31,29,.74);backdrop-filter:blur(8px);
+  display:none;place-items:center;padding:18px
+}
+.connection-cover.show{display:grid}
+.connection-card{
+  width:min(520px,100%);background:#fffaf0;border:1px solid rgba(217,155,43,.28);
+  border-radius:24px;padding:28px;box-shadow:0 28px 80px rgba(0,0,0,.3);color:#252925;text-align:center
+}
+.connection-card h3{font-size:27px;margin:12px 0 7px}
+.connection-card p{color:#756e64;line-height:1.7}
+.chat-toggle{
+  position:fixed;right:18px;bottom:18px;z-index:170;border-radius:999px!important;
+  background:#232926!important;color:#ffd16c!important;border:2px solid #d99b2b!important;
+  box-shadow:0 12px 28px rgba(43,34,21,.2)
+}
+.chat-toggle .unread{
+  display:none;position:absolute;right:-4px;top:-5px;min-width:20px;height:20px;padding:0 5px;
+  border-radius:999px;background:#d95757;color:#fff;font-size:10px;place-items:center
+}
+.chat-toggle .unread.show{display:grid}
+.chat-panel{
+  position:fixed;right:18px;bottom:74px;width:360px;height:min(620px,calc(100vh - 115px));z-index:165;
+  display:none;grid-template-rows:auto 1fr auto;background:#fffaf0;border:1px solid rgba(76,57,31,.17);
+  border-radius:22px;box-shadow:0 22px 65px rgba(44,32,18,.24);overflow:hidden
+}
+.chat-panel.show{display:grid}
+.chat-head{
+  padding:14px 16px;background:#232926;color:#fff;display:flex;justify-content:space-between;align-items:center
+}
+.chat-head strong{color:#ffd16c}.chat-head small{display:block;color:#c8c5bd;margin-top:2px}
+.chat-messages{padding:14px;overflow:auto;display:flex;flex-direction:column;gap:10px;background:#f7ecd8}
+.chat-msg{max-width:92%;padding:9px 11px;border-radius:13px;background:#fffdf8;border:1px solid rgba(74,54,27,.11)}
+.chat-msg.mine{align-self:flex-end;background:#fff0c7}
+.chat-msg.system{max-width:100%;background:#252b28;color:#fff;border-color:#252b28}
+.chat-meta{display:flex;align-items:center;gap:6px;font-size:9px;color:#857a6a;margin-bottom:4px}
+.chat-msg.system .chat-meta{color:#d9cbaa}
+.chat-role{font-weight:900;color:#a36712}
+.chat-msg.system .chat-role{color:#ffd16c}
+.chat-body{font-size:13px;line-height:1.55;overflow-wrap:anywhere}
+.chat-compose{padding:12px;background:#fffaf0;border-top:1px solid var(--ny-line);display:grid;grid-template-columns:1fr auto;gap:8px}
+.chat-compose input{min-width:0}
+.online-presence{font-size:10px;color:#7c7469;margin-top:3px}
+.join-name{
+  display:grid;gap:10px;margin:16px 0;text-align:left
+}
+.join-name label{font-weight:800}
+@media(max-width:680px){
+  .online-link-row{grid-template-columns:1fr}
+  .chat-panel{left:10px;right:10px;bottom:74px;width:auto;height:min(66vh,560px)}
+  .chat-toggle{right:12px;bottom:72px}
+}
+
+</style>
+</head>
+<body>
+  <div class="noise"></div>
+
+  <aside class="ny-sidebar" aria-label="メインナビゲーション">
+    <div class="ny-side-logo">
+      <div class="ny-side-logo-icon">🐾🎙</div>
+      <div class="ny-side-logo-title">ニャウンサー</div>
+      <div class="ny-side-logo-sub">ドラフト会議</div>
+    </div>
+    <nav class="ny-side-nav">
+      <button data-go="home">🐾 <span>ホーム</span></button>
+      <button data-go="admin">🎛 <span>主催者</span></button>
+      <button data-go="spectator">📺 <span>観戦席</span></button>
+      <button data-go="setup">⚙ <span>設定</span></button>
+    </nav>
+    <div class="ny-guild-badge"><small>軍団名</small><strong>ちゃおちゅーる</strong></div>
+  </aside>
+
+  <header class="topbar">
+    <div class="brand" id="brandHome" role="button" tabindex="0">
+      <div class="brand-mark">🐾</div>
+      <div>
+        <div class="brand-title">ニャウンサー <span class="brand-catline">GROUP DRAFT</span></div>
+        <div class="brand-sub">ちゃおちゅーる ／ VER.5.0</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span id="onlineGlobalBadge"></span><span id="syncBadge" class="sync-badge">● LOCAL SYNC</span>
+      <button id="resetAllBtn" class="ghost danger small">試作データを完全初期化</button>
+    </div>
+  </header>
+
+  <main id="app" class="app"></main>
+
+  <template id="toastTpl">
+    <div class="toast"></div>
+  </template>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="online-config.js"></script>
+  <script>
+
+const STORAGE_KEY='nyouncerGroupDraftV50Prototype';
+const HISTORY_KEY='nyouncerGroupDraftV50History';
+const ADMIN_UNLOCK_KEY='nyouncerGroupDraftAdminUnlockedV50';
+const bc='BroadcastChannel' in window ? new BroadcastChannel('nyouncer-group-draft-v50') : null;
+
+const defaultNames=Array.from({length:30},(_,i)=>`団員${String(i+1).padStart(2,'0')}`);
+
+function initialGroups(){
+  const names=['Aグループ','Bグループ','Cグループ','Dグループ','Eグループ','Fグループ','Gグループ','Hグループ'];
+  return names.map((name,i)=>({
+    id:'g'+(i+1),
+    name,
+    memberIds:Array.from({length:3},(_,j)=>'p'+(5+i*3+j)).filter(id=>Number(id.slice(1))<=28),
+    acquiredBy:null
+  }));
+}
+function initialState(){
+  return {
+    version:4,
+    setupComplete:false,
+    eventName:'ちゃおちゅーる 団員グループドラフト会議',
+    people:defaultNames.map((name,i)=>({id:'p'+(i+1),name})),
+    teams:[
+      {id:'A',name:'抽選参加者1',leaderId:'p1',members:[],groupsWon:[]},
+      {id:'B',name:'抽選参加者2',leaderId:'p2',members:[],groupsWon:[]},
+      {id:'C',name:'抽選参加者3',leaderId:'p3',members:[],groupsWon:[]},
+      {id:'D',name:'抽選参加者4',leaderId:'p4',members:[],groupsWon:[]}
+    ],
+    groups:initialGroups(),
+    round:1,
+    roundAttempt:1,
+    currentRoundAssignments:{},
+    currentAttemptHistory:[],
+    phase:'waiting',
+    phaseBeforePause:null,
+    openingUntil:null,
+    selections:{A:null,B:null,C:null,D:null},
+    pendingConflict:null,
+    lastReveal:null,
+    revealIndex:0,
+    board:[],
+    logs:[],
+    chatMessages:[],
+    started:false,
+    finishedAt:null,
+    adminPinHash:null,
+    voice:{
+      enabled:false,
+      engineUrl:'http://127.0.0.1:10101',
+      speakerId:null,
+      speakerLabel:'',
+      connected:false,
+      announcerPreset:true,
+      speedScale:0.88,
+      intonationScale:0.78,
+      tempoDynamicsScale:0.72,
+      pitchScale:0.0,
+      volumeScale:1.08,
+      prePhonemeLength:0.12,
+      postPhonemeLength:0.18
+    }
+  };
+}
+function normalizeState(s){
+  const d=initialState();
+  s={...d,...(s||{})};
+  s.people=Array.isArray(s.people)?s.people:d.people;
+  s.teams=Array.isArray(s.teams)&&s.teams.length===4?s.teams:d.teams;
+  s.teams=s.teams.map((t,i)=>({...d.teams[i],...t,members:Array.isArray(t.members)?t.members:[],groupsWon:Array.isArray(t.groupsWon)?t.groupsWon:[]}));
+  s.groups=Array.isArray(s.groups)&&s.groups.length?s.groups:d.groups;
+  s.groups=s.groups.map((g,i)=>({id:g.id||`g${i+1}`,name:g.name||`グループ${i+1}`,memberIds:Array.isArray(g.memberIds)?g.memberIds:[],acquiredBy:g.acquiredBy||null}));
+  s.selections={A:null,B:null,C:null,D:null,...(s.selections||{})};
+  s.currentRoundAssignments={...(s.currentRoundAssignments||{})};
+  s.currentAttemptHistory=Array.isArray(s.currentAttemptHistory)?s.currentAttemptHistory:[];
+  s.board=Array.isArray(s.board)?s.board:[];
+  s.logs=Array.isArray(s.logs)?s.logs:[];
+  s.chatMessages=Array.isArray(s.chatMessages)?s.chatMessages:[];
+  s.voice={...d.voice,...(s.voice||{})};
+  s.roundAttempt=Number(s.roundAttempt)||1;
+  if(s.phase==='opening' && s.openingUntil && Date.now()>s.openingUntil){s.phase='selecting';s.openingUntil=null;}
+  return s;
+}
+function loadState(){try{return normalizeState(JSON.parse(localStorage.getItem(STORAGE_KEY))||initialState())}catch(e){return initialState()}}
+let state=loadState();
+let view=parseView();
+let tempSelected=null;
+let revealRunner=false;
+let lotteryAnimating=false;
+let lotteryAudioCtx=null;
+if(view.screen==='admin'&&!isAdminUnlocked()){view={screen:'home',team:null};const u=new URL(location.href);u.searchParams.set('screen','home');u.searchParams.delete('team');history.replaceState({},'',u)}
+
+function saveState(source='local'){
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+  if(source==='local'&&bc)bc.postMessage({type:'sync'});
+  if(source==='local'&&isOnlineHost())onlineScheduleSnapshots();
+}
+function checkpoint(reason){
+  try{
+    const arr=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
+    arr.push({reason,at:Date.now(),state:JSON.parse(JSON.stringify(state))});
+    localStorage.setItem(HISTORY_KEY,JSON.stringify(arr.slice(-30)));
+  }catch(e){}
+}
+function undoCheckpoint(){
+  try{
+    const arr=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
+    if(!arr.length)return toast('戻せる操作がありません');
+    const snap=arr.pop();localStorage.setItem(HISTORY_KEY,JSON.stringify(arr));
+    state=normalizeState(snap.state);saveState();render();toast(`「${snap.reason}」の直前まで戻しました`);
+  }catch(e){toast('復元に失敗しました')}
+}
+function clearHistory(){localStorage.removeItem(HISTORY_KEY)}
+function syncFromStorage(){if(isOnlineRemote())return;state=loadState();render();refreshLotteryOverlayIfNeeded()}
+window.addEventListener('storage',e=>{if(e.key===STORAGE_KEY)syncFromStorage()});
+if(bc)bc.onmessage=()=>syncFromStorage();
+
+function parseView(){const p=new URLSearchParams(location.search);return{screen:p.get('screen')||'home',team:p.get('team')||null}}
+function go(screen,teamId=null){
+  if(isOnlineSpectator()){screen='spectator';teamId=null}
+  if(isOnlineParticipant()){screen='leader';teamId=onlineSession.team}
+  const u=new URL(location.href);u.searchParams.set('screen',screen);if(teamId)u.searchParams.set('team',teamId);else u.searchParams.delete('team');
+  history.pushState({},'',u);view={screen,team:teamId};render()
+}
+window.addEventListener('popstate',()=>{view=parseView();render()});
+
+function person(id){return state.people.find(p=>p.id===id)}
+function team(id){return state.teams.find(t=>t.id===id)}
+function group(id){return state.groups.find(g=>g.id===id)}
+function participantIds(){return new Set(state.teams.map(t=>t.leaderId).filter(Boolean))}
+function groupOfPerson(pid){return state.groups.find(g=>g.memberIds.includes(pid))||null}
+function availableGroups(){return state.groups.filter(g=>!g.acquiredBy)}
+function activeTeamIds(){return state.teams.map(t=>t.id).filter(id=>!state.currentRoundAssignments[id])}
+function allSelected(){const active=activeTeamIds();return active.length>0&&active.every(id=>state.selections[id])}
+function groupMembersLabel(gid){const g=group(gid);return g?g.memberIds.map(id=>person(id)?.name||id).join('・'):''}
+function awardGroup(tid,gid,mode='direct'){
+  const t=team(tid),g=group(gid);
+  if(!t||!g||g.acquiredBy)return false;
+  g.acquiredBy=tid;
+  if(!t.groupsWon.includes(gid))t.groupsWon.push(gid);
+  g.memberIds.forEach(pid=>{if(!t.members.includes(pid))t.members.push(pid)});
+  state.currentRoundAssignments[tid]=gid;
+  const attempt=state.currentAttemptHistory[state.currentAttemptHistory.length-1];
+  if(attempt?.results?.[tid])Object.assign(attempt.results[tid],{mode,acquired:true});
+  return true;
+}
+function groupCountWarning(){
+  if(state.groups.length<4)return'グループは最低4つ必要です。';
+  if(state.groups.some(g=>!g.memberIds.length))return'空のグループがあります。各グループに1名以上設定してください。';
+  if(state.groups.length%4!==0)return`現在${state.groups.length}グループです。4の倍数ではないため、最終的に${state.groups.length%4}グループ余る可能性があります。`;
+  return'4人制ドラフトとして問題なく開始できます。';
+}
+function phaseLabel(p){return({waiting:'待機',opening:'開幕演出',selecting:state.roundAttempt>1?'再指名':'選択中',reveal:'指名発表',lottery:'抽選',paused:'一時停止',complete:'終了'})[p]||p}
+function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+function log(msg){state.logs.unshift({at:new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}),msg});state.logs=state.logs.slice(0,120);onlineMaybeSystemLog(msg)}
+function toast(msg){const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),2400)}
+
+
+/* =========================================================
+   Ver.5.0 Online Realtime transport
+   Host-authoritative. Public channel never receives hidden picks.
+   ========================================================= */
+const ONLINE_CFG=window.NYOUNCER_ONLINE_CONFIG||{};
+const ONLINE_HOST_META_KEY='nyouncerV50OnlineHostMeta';
+const onlineParams=new URLSearchParams(location.search);
+let onlineSession={
+  enabled:onlineParams.get('online')==='1',
+  role:onlineParams.get('role')||null,
+  room:(onlineParams.get('room')||'').toUpperCase(),
+  team:onlineParams.get('team')||null,
+  token:onlineParams.get('token')||null,
+  displayName:'',
+  connected:false,
+  presenceCount:0,
+  error:'',
+  gotState:false
+};
+let onlineClient=null;
+let onlinePublicChannel=null;
+let onlineTeamChannel=null;
+let onlineHostTeamChannels={};
+let onlineBroadcastTimer=null;
+let onlineUnread=0;
+let onlineChatOpen=false;
+
+function onlineConfigReady(){
+  return !!(ONLINE_CFG.supabaseUrl&&ONLINE_CFG.supabaseKey&&
+    !String(ONLINE_CFG.supabaseUrl).includes('YOUR_')&&!String(ONLINE_CFG.supabaseKey).includes('YOUR_'));
+}
+function isOnlineMode(){return !!onlineSession.enabled}
+function isOnlineHost(){return isOnlineMode()&&onlineSession.role==='host'}
+function isOnlineParticipant(){return isOnlineMode()&&onlineSession.role==='participant'}
+function isOnlineSpectator(){return isOnlineMode()&&onlineSession.role==='spectator'}
+function isOnlineRemote(){return isOnlineParticipant()||isOnlineSpectator()}
+function onlineRandom(chars=14){
+  const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const a=new Uint32Array(chars);try{crypto.getRandomValues(a)}catch(e){for(let i=0;i<chars;i++)a[i]=Math.floor(Math.random()*1e9)}
+  return [...a].map(v=>alphabet[v%alphabet.length]).join('');
+}
+function onlineHostMeta(){
+  try{return JSON.parse(localStorage.getItem(ONLINE_HOST_META_KEY)||'null')}catch(e){return null}
+}
+function createOnlineHostMeta(){
+  const meta={roomCode:onlineRandom(7),tokens:{A:onlineRandom(18),B:onlineRandom(18),C:onlineRandom(18),D:onlineRandom(18)},createdAt:Date.now()};
+  localStorage.setItem(ONLINE_HOST_META_KEY,JSON.stringify(meta));return meta
+}
+function onlineBaseUrl(){
+  if(ONLINE_CFG.publicBaseUrl){
+    try{return new URL(ONLINE_CFG.publicBaseUrl).toString()}catch(e){}
+  }
+  const u=new URL(location.href);u.search='';u.hash='';return u.toString()
+}
+function onlineSpectatorUrl(meta=onlineHostMeta()){
+  if(!meta)return'';const u=new URL(onlineBaseUrl());u.searchParams.set('online','1');u.searchParams.set('room',meta.roomCode);u.searchParams.set('role','spectator');return u.toString()
+}
+function onlineParticipantUrl(tid,meta=onlineHostMeta()){
+  if(!meta)return'';const u=new URL(onlineBaseUrl());u.searchParams.set('online','1');u.searchParams.set('room',meta.roomCode);u.searchParams.set('role','participant');u.searchParams.set('team',tid);u.searchParams.set('token',meta.tokens[tid]);return u.toString()
+}
+function onlinePublicTopic(){return `nyouncer:${onlineSession.room}:public`}
+function onlineTeamTopic(tid,token){return `nyouncer:${onlineSession.room}:team:${tid}:${token}`}
+
+function publicSnapshot(){
+  const s=JSON.parse(JSON.stringify(state));
+  delete s.adminPinHash;
+  s.voice={enabled:false,connected:false};
+  s.logs=[];
+  s.currentAttemptHistory=[];
+  const visible={A:null,B:null,C:null,D:null};
+  if(s.phase==='reveal'&&s.lastReveal){
+    const ids=s.lastReveal.activeTeamIds||[];
+    ids.forEach((tid,i)=>{if(i<s.revealIndex)visible[tid]=s.selections[tid]});
+    s.lastReveal.selections={...visible};
+    const counts={};Object.values(visible).filter(Boolean).forEach(gid=>counts[gid]=(counts[gid]||0)+1);
+    s.lastReveal.conflicts=Object.entries(counts).filter(([,n])=>n>1).map(([gid])=>gid);
+  }else if(s.phase==='lottery'){
+    // All picks have already been revealed before lottery begins.
+    Object.assign(visible,s.selections);
+  }
+  s.selections=visible;
+  if(s.pendingConflict)delete s.pendingConflict.selectionGroups;
+  return s
+}
+function teamSnapshot(tid){
+  const s=publicSnapshot();
+  if(state.phase==='selecting'||state.phase==='reveal')s.selections[tid]=state.selections[tid]||null;
+  return s
+}
+function applyOnlineSnapshot(s){
+  if(!s)return;
+  onlineSession.gotState=true;
+  state=normalizeState(s);
+  render();
+  refreshLotteryOverlayIfNeeded();
+  renderOnlineChrome();
+}
+function onlineScheduleSnapshots(){
+  if(!isOnlineHost()||!onlineSession.connected)return;
+  clearTimeout(onlineBroadcastTimer);
+  onlineBroadcastTimer=setTimeout(()=>onlineBroadcastSnapshots(),35);
+}
+async function onlineBroadcastSnapshots(){
+  if(!isOnlineHost()||!onlineSession.connected||!onlinePublicChannel)return;
+  try{
+    await onlinePublicChannel.send({type:'broadcast',event:'state_public',payload:{state:publicSnapshot(),at:Date.now()}});
+    for(const t of state.teams){
+      const ch=onlineHostTeamChannels[t.id];
+      if(ch)await ch.send({type:'broadcast',event:'state_team',payload:{state:teamSnapshot(t.id),at:Date.now()}});
+    }
+  }catch(e){console.warn('[online snapshot]',e)}
+}
+async function onlineSendTeamCommand(action,payload={}){
+  if(!isOnlineParticipant()||!onlineTeamChannel)return toast('オンライン指名席に接続されていません');
+  try{
+    await onlineTeamChannel.send({type:'broadcast',event:'team_command',payload:{action,...payload,teamId:onlineSession.team,at:Date.now()}});
+  }catch(e){toast('送信に失敗しました')}
+}
+function handleOnlineTeamCommand(tid,p={}){
+  if(!isOnlineHost()||p.teamId!==tid)return;
+  if(p.action==='pick'){
+    const gid=p.groupId,g=group(gid);
+    if(state.phase!=='selecting'||state.currentRoundAssignments[tid]||state.selections[tid]||!g||g.acquiredBy)return;
+    checkpoint(`${team(tid)?.name||tid}オンライン指名`);
+    state.selections[tid]=gid;
+    log(`${team(tid)?.name||tid} がオンラインで ${g.name} を指名`);
+    saveState();render();
+  }else if(p.action==='envelope_select'){
+    selectEnvelope(p.envelopeId,tid);
+  }else if(p.action==='envelope_open'){
+    openEnvelope(tid,tid);
+  }
+}
+function onlineNameKey(){return `nyouncerV50Name:${onlineSession.room}:${onlineSession.role}:${onlineSession.team||'-'}`}
+function onlineDefaultName(){
+  if(isOnlineHost())return'主催者';
+  if(isOnlineParticipant())return team(onlineSession.team)?.name||'指名実施者';
+  return'';
+}
+function askOnlineName(){
+  const saved=localStorage.getItem(onlineNameKey());
+  if(saved){onlineSession.displayName=saved;return Promise.resolve(saved)}
+  return new Promise(resolve=>{
+    const cover=document.getElementById('onlineConnectCover')||document.createElement('div');
+    cover.id='onlineConnectCover';cover.className='connection-cover show';
+    cover.innerHTML=`<div class="connection-card"><div style="font-size:40px">🐾💬</div><h3>${isOnlineSpectator()?'観戦席へ参加':'オンライン会場へ参加'}</h3><p>チャットで表示する名前を入力してください。</p><div class="join-name"><label>表示名</label><input id="onlineJoinName" maxlength="24" placeholder="${isOnlineSpectator()?'例：かぼちゃ':esc(onlineDefaultName())}" value="${esc(onlineDefaultName())}"></div><button class="primary" id="onlineJoinSubmit" style="width:100%">参加する</button></div>`;
+    if(!cover.parentNode)document.body.appendChild(cover);
+    const input=cover.querySelector('#onlineJoinName'),btn=cover.querySelector('#onlineJoinSubmit');
+    const done=()=>{const name=(input.value||'').trim();if(!name)return;onlineSession.displayName=name;localStorage.setItem(onlineNameKey(),name);cover.classList.remove('show');resolve(name)};
+    btn.onclick=done;input.onkeydown=e=>{if(e.key==='Enter')done()};setTimeout(()=>input.focus(),30)
+  })
+}
+function onlinePresencePayload(){return{name:onlineSession.displayName||onlineDefaultName(),role:onlineSession.role,team:onlineSession.team,joinedAt:new Date().toISOString()}}
+function updatePresenceCount(){
+  if(!onlinePublicChannel)return;try{
+    const ps=onlinePublicChannel.presenceState();onlineSession.presenceCount=Object.values(ps).flat().length;renderOnlineChrome();
+  }catch(e){}
+}
+async function initOnlineMode(){
+  if(!isOnlineMode())return;
+  document.body.classList.add('online-mode',`online-role-${onlineSession.role||'unknown'}`);
+  if(!onlineConfigReady()){onlineSession.error='online-config.js に Supabase URL / Publishable Key を設定してください。';renderOnlineChrome();return}
+  if(!window.supabase?.createClient){onlineSession.error='Supabaseライブラリを読み込めませんでした。インターネット接続を確認してください。';renderOnlineChrome();return}
+  if(!onlineSession.room){onlineSession.error='ルームコードがありません。';renderOnlineChrome();return}
+  if(isOnlineParticipant()&&(!onlineSession.team||!onlineSession.token)){onlineSession.error='指名席リンクが不完全です。主催者から専用URLを受け取ってください。';renderOnlineChrome();return}
+  if(isOnlineHost()){
+    const meta=onlineHostMeta();
+    if(!meta||meta.roomCode!==onlineSession.room){onlineSession.error='この端末に主催者ルーム情報がありません。ホームからオンライン会場を作成してください。';renderOnlineChrome();return}
+  }
+  await askOnlineName();
+  onlineClient=window.supabase.createClient(ONLINE_CFG.supabaseUrl,ONLINE_CFG.supabaseKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+  onlinePublicChannel=onlineClient.channel(onlinePublicTopic(),{config:{broadcast:{self:false},presence:{key:`${onlineSession.role}-${onlineSession.team||'x'}-${onlineRandom(5)}`}}})
+    .on('broadcast',{event:'chat_message'},({payload})=>receiveChatMessage(payload))
+    .on('broadcast',{event:'state_public'},({payload})=>{if(isOnlineSpectator())applyOnlineSnapshot(payload.state)})
+    .on('broadcast',{event:'sync_request'},()=>{if(isOnlineHost())onlineBroadcastSnapshots()})
+    .on('broadcast',{event:'chat_post'},({payload})=>{if(isOnlineHost())hostAcceptChat(payload)})
+    .on('presence',{event:'sync'},()=>updatePresenceCount())
+    .subscribe(async status=>{
+      if(status==='SUBSCRIBED'){
+        onlineSession.connected=true;
+        try{await onlinePublicChannel.track(onlinePresencePayload())}catch(e){}
+        if(isOnlineSpectator()){
+          await onlinePublicChannel.send({type:'broadcast',event:'sync_request',payload:{at:Date.now()}});
+          [1200,3200,6500].forEach(ms=>setTimeout(()=>{if(!onlineSession.gotState)onlinePublicChannel?.send({type:'broadcast',event:'sync_request',payload:{at:Date.now()}})},ms));
+        }
+        if(isOnlineHost())onlineBroadcastSnapshots();
+        renderOnlineChrome();
+      }
+    });
+
+  if(isOnlineHost()){
+    const meta=onlineHostMeta();
+    for(const t of state.teams){
+      const ch=onlineClient.channel(onlineTeamTopic(t.id,meta.tokens[t.id]),{config:{broadcast:{self:false}}})
+        .on('broadcast',{event:'team_command'},({payload})=>handleOnlineTeamCommand(t.id,payload))
+        .on('broadcast',{event:'team_sync_request'},()=>{const c=onlineHostTeamChannels[t.id];if(c)c.send({type:'broadcast',event:'state_team',payload:{state:teamSnapshot(t.id),at:Date.now()}})})
+        .subscribe();
+      onlineHostTeamChannels[t.id]=ch;
+    }
+  }else if(isOnlineParticipant()){
+    onlineTeamChannel=onlineClient.channel(onlineTeamTopic(onlineSession.team,onlineSession.token),{config:{broadcast:{self:false}}})
+      .on('broadcast',{event:'state_team'},({payload})=>applyOnlineSnapshot(payload.state))
+      .subscribe(async status=>{
+        if(status==='SUBSCRIBED'){
+          await onlineTeamChannel.send({type:'broadcast',event:'team_sync_request',payload:{at:Date.now()}});
+          [1200,3200,6500].forEach(ms=>setTimeout(()=>{if(!onlineSession.gotState)onlineTeamChannel?.send({type:'broadcast',event:'team_sync_request',payload:{at:Date.now()}})},ms));
+        }
+      });
+  }
+  if(isOnlineParticipant())view={screen:'leader',team:onlineSession.team};
+  if(isOnlineSpectator())view={screen:'spectator',team:null};
+}
+function startOnlineRoom(){
+  if(!onlineConfigReady())return toast('先に online-config.js へ Supabase設定を入力してください');
+  const meta=createOnlineHostMeta();
+  const u=new URL(location.href);u.search='';u.searchParams.set('online','1');u.searchParams.set('room',meta.roomCode);u.searchParams.set('role','host');
+  location.href=u.toString();
+}
+function leaveOnlineMode(){const u=new URL(location.href);u.search='';location.href=u.toString()}
+function onlineStatusHTML(){
+  if(!isOnlineMode())return `<span class="online-status offline">LOCAL</span>`;
+  if(onlineSession.error)return `<span class="online-status offline">⚠ ONLINE ERROR</span>`;
+  if(onlineSession.connected)return `<span class="online-status connected">● ONLINE ${onlineSession.presenceCount||1}人</span>`;
+  return `<span class="online-status waiting">● 接続中</span>`
+}
+function onlineHomeButtonHTML(){
+  if(isOnlineMode())return '';
+  const meta=onlineHostMeta();
+  return `<button class="primary" id="startOnlineRoomBtn">🌐 新しいオンライン会場</button>${meta?`<button class="secondary" id="resumeOnlineRoomBtn">↻ 前回の会場 ${esc(meta.roomCode)} を再開</button>`:''}`;
+}
+function resumeOnlineRoom(){
+  const meta=onlineHostMeta();if(!meta)return startOnlineRoom();
+  const u=new URL(location.href);u.search='';u.searchParams.set('online','1');u.searchParams.set('room',meta.roomCode);u.searchParams.set('role','host');location.href=u.toString()
+}
+function onlineHostPanelHTML(){
+  if(!isOnlineHost())return'';
+  const meta=onlineHostMeta();if(!meta)return'';
+  return `<section class="online-host-panel"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><div class="kicker">🌐 ONLINE EVENT ROOM</div><h3 style="margin:6px 0">オンライン会場</h3></div><span class="online-room-code">${esc(meta.roomCode)}</span></div><div class="online-link-row"><strong>👀 観戦席</strong><input readonly value="${esc(onlineSpectatorUrl(meta))}"><button class="ghost small copy-online-link" data-url="${esc(onlineSpectatorUrl(meta))}">コピー</button></div>${state.teams.map(t=>`<div class="online-link-row"><strong>🎯 ${esc(t.name)}</strong><input readonly value="${esc(onlineParticipantUrl(t.id,meta))}"><button class="ghost small copy-online-link" data-url="${esc(onlineParticipantUrl(t.id,meta))}">コピー</button></div>`).join('')}<div class="callout" style="margin-top:12px">指名実施者URLは各席専用の秘密トークン入りです。該当する本人だけに送ってください。観戦URLは共有用です。${!ONLINE_CFG.publicBaseUrl&&['127.0.0.1','localhost'].includes(location.hostname)?'<br><strong>現在ローカルURLです。別端末へ配る場合は online-config.js の publicBaseUrl に公開先URLを設定してください。</strong>':''}</div></section>`
+}
+function chatRoleLabel(role,teamId){
+  if(role==='host')return'👑 主催者';
+  if(role==='participant')return`🎯 ${team(teamId)?.name||'指名実施者'}`;
+  if(role==='system')return'🐾 ニャウンサー';
+  return'👤 観戦者'
+}
+function hostAcceptChat(p){
+  if(!isOnlineHost()||!p)return;
+  const body=String(p.body||'').trim().slice(0,280),name=String(p.name||'参加者').trim().slice(0,24);
+  if(!body)return;
+  const meta=onlineHostMeta();
+  const validParticipant=p.role==='participant'&&p.teamId&&meta?.tokens?.[p.teamId]===p.participantToken;
+  const msg={id:`m-${Date.now()}-${onlineRandom(5)}`,name,role:validParticipant?'participant':'spectator',teamId:validParticipant?p.teamId:null,body,at:Date.now()};
+  state.chatMessages.push(msg);state.chatMessages=state.chatMessages.slice(-120);saveState();
+  onlinePublicChannel?.send({type:'broadcast',event:'chat_message',payload:msg});
+  renderOnlineChrome();
+}
+function hostPostChat(body){
+  const b=String(body||'').trim().slice(0,280);if(!b)return;
+  const msg={id:`m-${Date.now()}-${onlineRandom(5)}`,name:onlineSession.displayName||'主催者',role:'host',teamId:null,body:b,at:Date.now()};
+  state.chatMessages.push(msg);state.chatMessages=state.chatMessages.slice(-120);saveState();
+  onlinePublicChannel?.send({type:'broadcast',event:'chat_message',payload:msg});renderOnlineChrome()
+}
+function onlineSystemChat(body){
+  if(!isOnlineHost()||!body)return;
+  const msg={id:`sys-${Date.now()}-${onlineRandom(5)}`,name:'ニャウンサー',role:'system',teamId:null,body:String(body).slice(0,280),at:Date.now()};
+  state.chatMessages.push(msg);state.chatMessages=state.chatMessages.slice(-120);saveState();
+  onlinePublicChannel?.send({type:'broadcast',event:'chat_message',payload:msg});renderOnlineChrome()
+}
+function onlineMaybeSystemLog(msg){
+  if(!isOnlineHost())return;
+  if(/開幕|指名受付開始|競合|抽選結果|再指名へ|巡 終了|ドラフト終了|全グループ/.test(msg))onlineSystemChat(msg)
+}
+function receiveChatMessage(msg){
+  if(!msg)return;
+  if(!state.chatMessages.some(m=>m.id===msg.id)){state.chatMessages.push(msg);state.chatMessages=state.chatMessages.slice(-120)}
+  if(!onlineChatOpen){onlineUnread++;renderOnlineChrome()}
+  else renderChatMessages();
+}
+async function sendChat(body){
+  const b=String(body||'').trim();if(!b)return;
+  if(isOnlineHost())return hostPostChat(b);
+  if(!onlinePublicChannel)return toast('チャットに接続していません');
+  await onlinePublicChannel.send({type:'broadcast',event:'chat_post',payload:{name:onlineSession.displayName,role:onlineSession.role,teamId:onlineSession.team,participantToken:isOnlineParticipant()?onlineSession.token:null,body:b.slice(0,280),at:Date.now()}});
+}
+function renderChatMessages(){
+  const box=document.getElementById('chatMessages');if(!box)return;
+  box.innerHTML=(state.chatMessages||[]).map(m=>`<div class="chat-msg ${m.role==='system'?'system':''} ${m.name===onlineSession.displayName&&m.role===onlineSession.role?'mine':''}"><div class="chat-meta"><span class="chat-role">${esc(chatRoleLabel(m.role,m.teamId))}</span><span>${esc(m.name||'')}</span><span>${new Date(m.at).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}</span></div><div class="chat-body">${esc(m.body||'')}</div></div>`).join('')||'<div class="empty">まだチャットはありません</div>';
+  box.scrollTop=box.scrollHeight
+}
+function renderOnlineChrome(){
+  const badge=document.getElementById('onlineGlobalBadge');if(badge)badge.innerHTML=onlineStatusHTML();
+  let cover=document.getElementById('onlineErrorCover');
+  if(isOnlineMode()&&onlineSession.error){
+    if(!cover){cover=document.createElement('div');cover.id='onlineErrorCover';cover.className='connection-cover show';document.body.appendChild(cover)}
+    cover.innerHTML=`<div class="connection-card"><div style="font-size:42px">⚠️</div><h3>オンライン接続設定</h3><p>${esc(onlineSession.error)}</p><button class="secondary" onclick="leaveOnlineMode()">ローカル版へ戻る</button></div>`
+  }else if(cover)cover.remove();
+  if(!isOnlineMode()||onlineSession.error)return;
+  let waitCover=document.getElementById('onlineWaitingCover');
+  if(isOnlineRemote()&&!onlineSession.gotState){
+    if(!waitCover){waitCover=document.createElement('div');waitCover.id='onlineWaitingCover';waitCover.className='connection-cover show';waitCover.innerHTML=`<div class="connection-card"><div style="font-size:42px">🐾📡</div><h3>会場へ接続中</h3><p>主催者から最新のドラフト情報を受信しています。<br>主催者画面を開いたままお待ちください。</p><div class="online-status waiting" style="margin-top:8px">● ROOM ${esc(onlineSession.room)}</div></div>`;document.body.appendChild(waitCover)}
+  }else if(waitCover)waitCover.remove();
+  let toggle=document.getElementById('chatToggle');
+  if(!toggle){toggle=document.createElement('button');toggle.id='chatToggle';toggle.className='chat-toggle';toggle.innerHTML='💬 会場チャット <span class="unread"></span>';document.body.appendChild(toggle);toggle.onclick=()=>{onlineChatOpen=!onlineChatOpen;onlineUnread=0;renderOnlineChrome()}}
+  let panel=document.getElementById('chatPanel');
+  if(!panel){panel=document.createElement('section');panel.id='chatPanel';panel.className='chat-panel';panel.innerHTML=`<div class="chat-head"><div><strong>💬 会場チャット</strong><small id="chatIdentity"></small><div class="online-presence" id="chatPresence"></div></div><button class="ghost small" id="chatClose">×</button></div><div id="chatMessages" class="chat-messages"></div><form id="chatForm" class="chat-compose"><input id="chatInput" maxlength="280" autocomplete="off" placeholder="メッセージを入力"><button class="primary small">送信</button></form>`;document.body.appendChild(panel);panel.querySelector('#chatClose').onclick=()=>{onlineChatOpen=false;renderOnlineChrome()};panel.querySelector('#chatForm').onsubmit=async e=>{e.preventDefault();const inp=panel.querySelector('#chatInput'),b=inp.value.trim();if(!b)return;inp.value='';await sendChat(b)}}
+  panel.classList.toggle('show',onlineChatOpen);
+  const unread=toggle.querySelector('.unread');unread.textContent=onlineUnread;unread.classList.toggle('show',onlineUnread>0);
+  const id=document.getElementById('chatIdentity');if(id)id.textContent=`${onlineSession.displayName} ／ ${chatRoleLabel(onlineSession.role,onlineSession.team)}`;
+  const pr=document.getElementById('chatPresence');if(pr)pr.textContent=`オンライン ${onlineSession.presenceCount||1}人`;
+  renderChatMessages();
+}
+
+let aivisSpeakersCache=[];
+let aivisQueue=Promise.resolve();
+let aivisAudioCtx=null;
+
+function voiceSettings(){return state.voice||initialState().voice}
+function cleanEngineUrl(url){return String(url||'http://127.0.0.1:10101').trim().replace(/\/+$/,'')}
+function setVoiceStatus(kind,msg){
+  const el=document.getElementById('aivisStatus');
+  if(!el)return;
+  el.className='voice-status '+(kind||'');
+  const txt=el.querySelector('[data-voice-status-text]');
+  if(txt)txt.textContent=msg;
+}
+function ensureAivisAudio(){
+  try{
+    aivisAudioCtx ||= new(window.AudioContext||window.webkitAudioContext)();
+    if(aivisAudioCtx.state==='suspended')aivisAudioCtx.resume();
+  }catch(e){}
+}
+async function aivisFetch(url,opts={}){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),7000);
+  try{return await fetch(url,{...opts,signal:controller.signal})}
+  finally{clearTimeout(timer)}
+}
+function flattenAivisSpeakers(speakers){
+  const rows=[];
+  (speakers||[]).forEach(sp=>{
+    (sp.styles||[]).forEach(st=>{
+      if(st.type && !['talk',''].includes(st.type))return;
+      rows.push({
+        id:Number(st.id),
+        label:`${sp.name} / ${st.name||'ノーマル'}`,
+        speakerName:sp.name,
+        styleName:st.name||'ノーマル'
+      });
+    });
+  });
+  return rows;
+}
+
+function findAidaAnnouncerStyle(rows){
+  const aida=rows.filter(r=>String(r.speakerName||'').replace(/\s/g,'').includes('阿井田茂'));
+  if(!aida.length)return null;
+  const priority=['Heavy','Mid','Calm','ノーマル','Normal'];
+  for(const name of priority){
+    const hit=aida.find(r=>String(r.styleName||'').toLowerCase()===name.toLowerCase());
+    if(hit)return hit;
+  }
+  return aida[0];
+}
+function applyAidaAnnouncerPreset({selectVoice=true,notify=false}={}){
+  const rows=flattenAivisSpeakers(aivisSpeakersCache);
+  const aida=findAidaAnnouncerStyle(rows);
+  state.voice={
+    ...voiceSettings(),
+    announcerPreset:true,
+    speedScale:0.88,
+    intonationScale:0.78,
+    tempoDynamicsScale:0.72,
+    pitchScale:0.0,
+    volumeScale:1.08,
+    prePhonemeLength:0.12,
+    postPhonemeLength:0.18
+  };
+  if(selectVoice&&aida){
+    state.voice.speakerId=aida.id;
+    state.voice.speakerLabel=aida.label;
+  }
+  saveState();
+  fillAivisVoiceSelect();
+  syncVoiceParamInputs();
+  if(notify){
+    toast(aida?'阿井田 茂 / Heavy系を司会プリセットに設定しました':'阿井田 茂が見つかりません。モデルをAivisSpeechへ追加してください');
+  }
+  return aida;
+}
+function syncVoiceParamInputs(){
+  const v=voiceSettings();
+  const ids={
+    voiceSpeed:'speedScale',voiceEmotion:'intonationScale',voiceTempo:'tempoDynamicsScale',
+    voicePitch:'pitchScale',voiceVolume:'volumeScale'
+  };
+  Object.entries(ids).forEach(([id,key])=>{
+    const el=document.getElementById(id);
+    if(el)el.value=v[key];
+  });
+}
+function fillAivisVoiceSelect(){
+  const sel=document.getElementById('aivisVoiceSelect');
+  if(!sel)return;
+  const rows=flattenAivisSpeakers(aivisSpeakersCache);
+  const current=Number(voiceSettings().speakerId);
+  sel.innerHTML=rows.length
+    ? rows.map(r=>`<option value="${r.id}" ${r.id===current?'selected':''}>${esc(r.label)}</option>`).join('')
+    : '<option value="">接続テストで話者を読み込んでください</option>';
+}
+async function connectAivis({quiet=false}={}){
+  const input=document.getElementById('aivisEngineUrl');
+  const base=cleanEngineUrl(input?.value||voiceSettings().engineUrl);
+  if(input)input.value=base;
+  setVoiceStatus('busy','AivisSpeech Engine に接続しています…');
+  try{
+    const [verRes,spRes]=await Promise.all([
+      aivisFetch(base+'/version'),
+      aivisFetch(base+'/speakers')
+    ]);
+    if(!verRes.ok)throw new Error('version '+verRes.status);
+    if(!spRes.ok)throw new Error('speakers '+spRes.status);
+    const version=await verRes.text();
+    const speakers=await spRes.json();
+    aivisSpeakersCache=speakers;
+    state.voice={...voiceSettings(),engineUrl:base,connected:true};
+    fillAivisVoiceSelect();
+    const rows=flattenAivisSpeakers(speakers);
+    const aida=findAidaAnnouncerStyle(rows);
+    const currentIsAida=String(state.voice.speakerLabel||'').replace(/\s/g,'').includes('阿井田茂');
+    if(aida && (!state.voice.speakerId || voiceSettings().announcerPreset || !currentIsAida)){
+      state.voice.speakerId=aida.id;
+      state.voice.speakerLabel=aida.label;
+      state.voice.announcerPreset=true;
+      fillAivisVoiceSelect();
+    }else if(!state.voice.speakerId&&rows[0]){
+      state.voice.speakerId=rows[0].id;
+      state.voice.speakerLabel=rows[0].label;
+      fillAivisVoiceSelect();
+    }
+    saveState();
+    setVoiceStatus('ok',`接続成功：AivisSpeech Engine ${String(version).replace(/"/g,'').trim()} ／ ${rows.length}スタイル`);
+    if(!quiet)toast('AivisSpeech に接続しました');
+    return true;
+  }catch(e){
+    state.voice={...voiceSettings(),engineUrl:base,connected:false};
+    saveState();
+    setVoiceStatus('bad','接続できません。AivisSpeechを起動し、ブラウザのローカルネットワークアクセスも確認してください。');
+    if(!quiet)toast('AivisSpeech に接続できませんでした');
+    console.warn('[AivisSpeech connection]',e);
+    return false;
+  }
+}
+function announcementText(type,p={}){
+  switch(type){
+    case 'opening':
+      return `${p.eventName||state.eventName}。ただいまより、団員グループドラフト会議を開始します。`;
+    case 'round_start':
+      return `第${p.round||state.round}巡のグループ指名受付を開始します。`;
+    case 'rebid':
+      return `第${p.round||state.round}巡。残る${p.count||activeTeamIds().length}名、再指名をお願いします。`;
+    case 'reveal_start':
+      return `第${p.round||state.round}巡。選択希望グループ。`;
+    case 'pick_reveal':
+      return `${p.team||''}……。${p.group||''}。`;
+    case 'conflict':
+      return `${p.group||''}。${Array.isArray(p.teams)?p.teams.length:(p.count||2)}名、指名重複。抽選を行います。`;
+    case 'lottery_win':
+      return `交渉権獲得は……。${p.team||''}。${p.group||''}を獲得します。`;
+    case 'complete':
+      return `${p.eventName||state.eventName}。すべてのグループ指名が終了しました。`;
+    default:return '';
+  }
+}
+async function speakAivisText(text,{force=false,poseKey='speaking'}={}){
+  const v=voiceSettings();
+  if(!text||(!force&&!v.enabled)||v.speakerId===null||v.speakerId===undefined)return false;
+  const base=cleanEngineUrl(v.engineUrl);
+  const speaker=Number(v.speakerId);
+  try{
+    ensureAivisAudio();
+    const qRes=await aivisFetch(`${base}/audio_query?text=${encodeURIComponent(text)}&speaker=${speaker}`,{method:'POST'});
+    if(!qRes.ok)throw new Error('audio_query '+qRes.status);
+    const query=await qRes.json();
+    const vv=voiceSettings();
+    if(vv.announcerPreset){
+      if('speedScale' in query) query.speedScale=Number(vv.speedScale??0.88);
+      if('intonationScale' in query) query.intonationScale=Number(vv.intonationScale??0.78);
+      if('tempoDynamicsScale' in query) query.tempoDynamicsScale=Number(vv.tempoDynamicsScale??0.72);
+      if('pitchScale' in query) query.pitchScale=Number(vv.pitchScale??0.0);
+      if('volumeScale' in query) query.volumeScale=Number(vv.volumeScale??1.08);
+      if('prePhonemeLength' in query) query.prePhonemeLength=Number(vv.prePhonemeLength??0.12);
+      if('postPhonemeLength' in query) query.postPhonemeLength=Number(vv.postPhonemeLength??0.18);
+    }
+    const sRes=await aivisFetch(`${base}/synthesis?speaker=${speaker}`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(query)
+    });
+    if(!sRes.ok)throw new Error('synthesis '+sRes.status);
+    const array=await (await sRes.blob()).arrayBuffer();
+    if(!aivisAudioCtx)throw new Error('AudioContext unavailable');
+    const buffer=await aivisAudioCtx.decodeAudioData(array.slice(0));
+    await new Promise((resolve,reject)=>{
+      const src=aivisAudioCtx.createBufferSource();
+      src.buffer=buffer;src.connect(aivisAudioCtx.destination);
+      setNyouncerSpeech(text,true,poseKey);
+      src.onended=()=>{setNyouncerSpeech('',false);resolve()};
+      try{src.start()}catch(e){setNyouncerSpeech('',false);reject(e)}
+    });
+    return true;
+  }catch(e){
+    setNyouncerSpeech('',false);
+    console.warn('[AivisSpeech synthesis]',e);
+    state.voice={...voiceSettings(),connected:false};
+    saveState();
+    setVoiceStatus('bad','音声生成に失敗しました。接続・話者設定を確認してください。');
+    return false;
+  }
+}
+function announce(type,payload={}){
+  const text=announcementText(type,payload);
+  console.debug('[AivisSpeech]',type,text,payload);
+  if(!text)return Promise.resolve(false);
+  const poseKey=nyouncerPoseForAnnouncement(type);
+  aivisQueue=aivisQueue.catch(()=>false).then(()=>speakAivisText(text,{poseKey}));
+  return aivisQueue;
+}
+function testAivisVoice(){
+  const sel=document.getElementById('aivisVoiceSelect');
+  if(sel?.value){
+    const row=flattenAivisSpeakers(aivisSpeakersCache).find(r=>String(r.id)===String(sel.value));
+    state.voice={...voiceSettings(),speakerId:Number(sel.value),speakerLabel:row?.label||''};
+  }
+  const url=document.getElementById('aivisEngineUrl')?.value;
+  if(url)state.voice.engineUrl=cleanEngineUrl(url);
+  ensureAivisAudio();
+  saveState();
+  setVoiceStatus('busy','テスト音声を生成しています…');
+  aivisQueue=aivisQueue.catch(()=>false).then(()=>speakAivisText('第一巡、選択希望グループ。抽選参加者1、Aグループ。',{force:true,poseKey:'mic'}));
+  aivisQueue.then(ok=>setVoiceStatus(ok?'ok':'bad',ok?'テスト読み上げに成功しました':'テスト読み上げに失敗しました'));
+}
+
+
+async function hashPin(pin){
+  if(window.crypto?.subtle){const data=new TextEncoder().encode(pin);const hash=await crypto.subtle.digest('SHA-256',data);return[...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,'0')).join('')}
+  let h=2166136261;for(const ch of pin){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return'fallback-'+(h>>>0).toString(16)
+}
+function isAdminUnlocked(){return sessionStorage.getItem(ADMIN_UNLOCK_KEY)==='1'}
+function lockAdmin(){sessionStorage.removeItem(ADMIN_UNLOCK_KEY)}
+function createPinOverlay(){
+  let o=document.getElementById('adminPinOverlay');if(o)return o;
+  o=document.createElement('div');o.id='adminPinOverlay';o.className='pin-overlay';o.innerHTML=`<div class="pin-dialog"><div class="pin-lock-icon">🔒</div><h3>主催者認証</h3><p>主催者画面はロックされています。<br>設定したPINを入力してください。</p><input id="adminPinLogin" class="pin-input" type="password" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="••••"><div id="adminPinError" class="pin-error"></div><div class="pin-actions"><button class="ghost" id="adminPinCancel">キャンセル</button><button class="primary" id="adminPinSubmit">解除</button></div></div>`;
+  document.body.appendChild(o);const input=o.querySelector('#adminPinLogin'),error=o.querySelector('#adminPinError');
+  async function submit(){const pin=input.value.trim();if(!pin)return;const h=await hashPin(pin);if(h===state.adminPinHash){sessionStorage.setItem(ADMIN_UNLOCK_KEY,'1');o.classList.remove('show');input.value='';error.textContent='';go('admin');toast('主催者ロックを解除しました')}else{error.textContent='PINが違います';input.select()}}
+  o.querySelector('#adminPinSubmit').addEventListener('click',submit);o.querySelector('#adminPinCancel').addEventListener('click',()=>{o.classList.remove('show');input.value='';error.textContent=''});input.addEventListener('keydown',e=>{if(e.key==='Enter')submit()});return o
+}
+function requestAdminAccess(){if(!state.adminPinHash){toast('先に初期設定で主催者PINを設定してください');go('setup');return}if(isAdminUnlocked()){go('admin');return}const o=createPinOverlay();o.classList.add('show');setTimeout(()=>o.querySelector('#adminPinLogin').focus(),30)}
+
+function confirmAction({title='確認',message='',name='',ok='確定',danger=false}){
+  return new Promise(resolve=>{
+    const o=document.createElement('div');o.className='confirm-overlay';o.innerHTML=`<div class="confirm-card"><div class="kicker">CONFIRM</div><h3>${esc(title)}</h3><p class="muted">${esc(message)}</p>${name?`<div class="confirm-name">${esc(name)}</div>`:''}<div class="confirm-actions"><button class="ghost" data-no>戻る</button><button class="${danger?'ghost danger':'primary'}" data-yes>${esc(ok)}</button></div></div>`;document.body.appendChild(o);
+    o.querySelector('[data-no]').onclick=()=>{o.remove();resolve(false)};o.querySelector('[data-yes]').onclick=()=>{o.remove();resolve(true)};
+  })
+}
+
+document.getElementById('brandHome').onclick=()=>go('home');
+document.getElementById('resetAllBtn').onclick=async()=>{if(isOnlineRemote())return toast('オンライン参加中は主催者操作できません');if(await confirmAction({title:'完全初期化',message:'このVer.5.0の保存データ・進行履歴をすべて削除します。',ok:'初期化する',danger:true})){state=initialState();lockAdmin();clearHistory();saveState();go('home');toast('完全初期化しました')}};
+
+function render(){
+  const app=document.getElementById('app');
+  if(view.screen==='home')app.innerHTML=homeView();
+  else if(view.screen==='setup')app.innerHTML=setupView();
+  else if(view.screen==='admin')app.innerHTML=adminView();
+  else if(view.screen==='leader')app.innerHTML=leaderView(view.team);
+  else if(view.screen==='spectator')app.innerHTML=spectatorView();
+  else app.innerHTML=homeView();
+  bind();
+  updateNyouncerPose();
+  renderOnlineChrome();
+  if(view.screen==='admin'&&state.phase==='reveal')resumeRevealSequence();
+}
+
+
+
+const NYOUNCER_POSES={
+  normal:{file:'01_host_normal.png',label:'通常司会'},
+  clipboard:{file:'02_clipboard.png',label:'進行メモ'},
+  speaking:{file:'03_speaking.png',label:'読み上げ'},
+  hype:{file:'04_hype.png',label:'盛り上げ'},
+  tension:{file:'05_tension.png',label:'緊張・待機'},
+  conflict:{file:'06_conflict.png',label:'競合発生'},
+  lottery:{file:'07_lottery.png',label:'抽選中'},
+  confused:{file:'08_confused.png',label:'困惑'},
+  cool:{file:'09_cool.png',label:'クール'},
+  mic:{file:'10_mic_closeup.png',label:'マイク司会'},
+  happy:{file:'11_happy.png',label:'喜び'},
+  megaphone:{file:'12_megaphone.png',label:'呼びかけ'},
+  celebrate:{file:'13_celebrate.png',label:'お祝い'},
+  bow:{file:'14_bow.png',label:'終了・お辞儀'}
+};
+let nyouncerSpeakingPose=null;
+
+function nyouncerPoseForPhase(){
+  if(state.phase==='paused')return 'confused';
+  if(!state.started)return 'normal';
+  if(state.phase==='opening')return 'hype';
+  if(state.phase==='selecting')return 'clipboard';
+  if(state.phase==='reveal')return 'speaking';
+  if(state.phase==='lottery')return 'lottery';
+  if(state.phase==='complete')return 'bow';
+  return 'normal';
+}
+function nyouncerPoseForAnnouncement(type){
+  switch(type){
+    case 'opening':return 'hype';
+    case 'round_start':return 'megaphone';
+    case 'reveal_start':return 'mic';
+    case 'pick_reveal':return 'speaking';
+    case 'conflict':return 'conflict';
+    case 'lottery_win':return 'celebrate';
+    case 'complete':return 'bow';
+    default:return 'speaking';
+  }
+}
+function nyouncerPoseSrc(key){
+  const pose=NYOUNCER_POSES[key]||NYOUNCER_POSES.normal;
+  return `assets/nyouncer/${pose.file}`;
+}
+function nyouncerCurrentPose(){
+  return nyouncerSpeakingPose||nyouncerPoseForPhase();
+}
+function updateNyouncerPose(key){
+  const poseKey=key||nyouncerCurrentPose();
+  const pose=NYOUNCER_POSES[poseKey]||NYOUNCER_POSES.normal;
+  document.querySelectorAll('[data-nyouncer-img]').forEach(img=>{
+    if(!img.src.endsWith('/'+pose.file))img.src=nyouncerPoseSrc(poseKey);
+    img.dataset.pose=poseKey;
+    img.alt=`ニャウンサー・${pose.label}`;
+  });
+  document.querySelectorAll('[data-nyouncer-pose-label]').forEach(el=>el.textContent=pose.label);
+}
+
+function nyouncerPhaseLine(){
+  if(state.phase==='paused') return 'ただいま一時停止中だにゃ。再開まで少し待っててにゃ！';
+  if(!state.started) return 'グループ編成ができたらドラフト開始だにゃ！';
+  if(state.phase==='opening') return 'ちゃおちゅーる、グループドラフト開幕だにゃ！';
+  if(state.phase==='selecting'&&state.roundAttempt>1) return `第${state.round}巡、再指名${state.roundAttempt-1}回目！残った参加者はもう一度選ぶにゃ！`;
+  if(state.phase==='selecting') return `第${state.round}巡。欲しいグループを指名するにゃ！`;
+  if(state.phase==='reveal') return `第${state.round}巡、グループ指名発表中！`;
+  if(state.phase==='lottery') return '指名重複！運命の封筒くじだにゃ…！';
+  if(state.phase==='complete') return 'グループドラフト終了！みんなお疲れさまだにゃ！';
+  return `第${state.round}巡へ。次のグループ指名を待ってるにゃ！`;
+}
+function nyouncerMascotHTML(extraClass=''){
+  const pose=nyouncerCurrentPose();
+  return `<div class="ny-broadcast-mascot ${extraClass}">
+    <div class="ny-speech" data-nyouncer-caption>${esc(nyouncerPhaseLine())}</div>
+    <img class="nyouncer-img" data-nyouncer-img src="${nyouncerPoseSrc(pose)}" alt="ニャウンサー">
+    <div class="ny-namechip">🐾 ニャウンサー</div>
+    <div class="ny-pose-label" data-nyouncer-pose-label>${esc(NYOUNCER_POSES[pose]?.label||'通常司会')}</div>
+  </div>`;
+}
+function setNyouncerSpeech(text,active,poseKey=null){
+  document.body.classList.toggle('ny-speaking',!!active);
+  if(active && poseKey)nyouncerSpeakingPose=poseKey;
+  if(!active)nyouncerSpeakingPose=null;
+  document.querySelectorAll('[data-nyouncer-caption]').forEach(el=>{
+    el.textContent=text || nyouncerPhaseLine();
+  });
+  updateNyouncerPose();
+}
+
+function homeView(){
+  const setupLabel=state.setupComplete?'設定を編集':'初期設定を開始';
+  const inProgress=state.started&&state.phase!=='complete';
+  return `${inProgress?`<div class="resume-banner"><div><strong>🐾 ${esc(state.eventName)} は進行中です</strong><span>第${state.round}巡・${phaseLabel(state.phase)} ／ 自動保存済み</span></div><button class="secondary" data-go="admin">進行を再開</button></div>`:''}
+  <section class="hero ny-home-hero">
+    <div class="hero-main">
+      <div class="ny-home-grid">
+        <div class="ny-home-copy">
+          <div class="ny-subtitle">🐾 ちゃおちゅーる PRESENTS</div>
+          <div class="kicker" style="margin-top:18px">NYOUNCER DRAFT CONFERENCE</div>
+          <h1><span class="ny-accent">ニャウンサー</span><br>ドラフト会議</h1>
+          <div class="hero-copy">4人の指名実施者・主催者・観戦者をリアルタイム接続。グループ指名、封筒抽選、再指名、観戦、会場チャットまでをニャウンサーが進行するオンライン対応ドラフトシステム。</div>
+          <div class="hero-actions">
+            <button class="primary" data-go="setup">${setupLabel}</button>
+            <button class="secondary ${state.setupComplete?'':'disabled'}" data-go="admin">主催者画面</button>
+            <button class="ghost ${state.setupComplete?'':'disabled'}" data-go="spectator">観戦席を開く</button>
+            ${onlineHomeButtonHTML()}<button class="ghost danger" id="newDraftBtn">新しいドラフト</button>
+          </div>
+        </div>
+        <div class="ny-home-mascot">
+          <div class="ny-speech" data-nyouncer-caption>${esc(nyouncerPhaseLine())}</div>
+          <img class="nyouncer-img" data-nyouncer-img src="${nyouncerPoseSrc(nyouncerCurrentPose())}" alt="ニャウンサー">
+          <div class="ny-namechip">🎙 ニャウンサー</div>
+          <div class="ny-pose-label" data-nyouncer-pose-label>${esc(NYOUNCER_POSES[nyouncerCurrentPose()]?.label||'通常司会')}</div>
+        </div>
+      </div>
+    </div>
+    <aside class="hero-side">
+      <div class="section-title">🐾 参加画面</div>
+      <div class="role-grid">
+        ${state.teams.map(t=>`<div class="role-card ${state.setupComplete?'':'disabled'}" data-leader="${t.id}"><div><strong>${esc(t.name)}</strong><span>${esc(person(t.leaderId)?.name||'未設定')} 専用のグループ指名・抽選画面</span></div><div class="arrow">›</div></div>`).join('')}
+        <div class="role-card ${state.setupComplete?'':'disabled'}" data-go="spectator"><div><strong>📺 観戦席</strong><span>ニャウンサー中継・競合・結果発表</span></div><div class="arrow">›</div></div>
+      </div>
+      <div class="sep"></div>
+      <div class="hook-box"><span class="autosave-dot"></span> 進行は自動保存<br><span class="voice-live ${voiceSettings().enabled?'':'off'}">${voiceSettings().enabled?'🔊 阿井田 茂 / AivisSpeech ON':'🔇 AivisSpeech OFF'}</span></div>
+    </aside>
+  </section>`
+}
+function setupView(){
+  const participantSet=participantIds();
+  const colors=['#e16a72','#66a8ff','#58c991','#d7a446'];
+  return `<div class="page-head"><div><div class="kicker">🐾 NYOUNCER GROUP SETUP</div><h2>グループドラフト初期設定</h2><p>4人の抽選参加者と、指名対象となる団員グループを設定します。</p></div><div class="admin-actions"><button class="ghost" data-go="home">ホームへ</button><button class="primary" id="saveSetup">設定を保存</button></div></div>
+
+<section class="panel">
+  <div class="section-title">イベント</div>
+  <label>ドラフト会議名</label>
+  <input id="eventNameInput" class="event-name-input" value="${esc(state.eventName)}" maxlength="50">
+</section>
+
+<section class="panel" style="margin-top:18px">
+  <div class="section-title">4人の抽選参加者</div>
+  <div class="grid-4">
+    ${state.teams.map((t,i)=>`<div class="team-card" style="--team:${colors[i]}">
+      <div class="team-tag">PARTICIPANT ${i+1}</div>
+      <div style="margin-top:14px"><label>表示名</label><input class="team-name-input" data-team="${t.id}" value="${esc(t.name)}"></div>
+      <div style="margin-top:12px"><label>操作する人</label><select class="leader-select" data-team="${t.id}">
+        ${state.people.map(p=>`<option value="${p.id}" ${p.id===t.leaderId?'selected':''}>${esc(p.name)}</option>`).join('')}
+      </select></div>
+    </div>`).join('')}
+  </div>
+</section>
+
+<div class="grid-2" style="margin-top:18px">
+  <section class="panel">
+    <div class="section-title">指名対象グループ</div>
+    <div class="callout">グループ数・各グループの人数は自由です。グループ自体がドラフトの指名対象になります。</div>
+    <div class="group-setup-grid" style="margin-top:14px">
+      ${state.groups.map((g,i)=>`<div class="group-setup-card">
+        <label>グループ名</label>
+        <input class="group-name-input" data-group="${g.id}" value="${esc(g.name)}">
+        <div class="group-count">${g.memberIds.length}名</div>
+        <div class="group-members-preview">${g.memberIds.length?g.memberIds.map(id=>`<span>${esc(person(id)?.name||id)}</span>`).join(''):'<span>未登録</span>'}</div>
+        <button class="ghost danger small remove-group" data-group="${g.id}" style="margin-top:12px">このグループを削除</button>
+      </div>`).join('')}
+    </div>
+    <div class="admin-actions" style="margin-top:14px">
+      <button class="secondary" id="addGroup">＋ グループを追加</button>
+    </div>
+    <div class="setup-warning">${esc(groupCountWarning())}</div>
+  </section>
+
+  <section class="panel">
+    <div class="section-title">団員名・所属グループ</div>
+    <div class="callout">抽選参加者4人はグループ対象外です。それ以外の団員は未所属、またはいずれか1グループに設定できます。</div>
+    <div class="people-list" style="margin-top:14px">
+      ${state.people.map((p,i)=>{
+        const isPart=participantSet.has(p.id);
+        const assigned=groupOfPerson(p.id)?.id||'';
+        return `<div class="member-group-row ${isPart?'is-participant':''}">
+          <div class="num">${String(i+1).padStart(2,'0')}</div>
+          <input class="person-name" data-id="${p.id}" value="${esc(p.name)}">
+          ${isPart?`<div class="chip">抽選参加者</div>`:`<select class="person-group-select" data-person="${p.id}">
+            <option value="">未所属</option>
+            ${state.groups.map(g=>`<option value="${g.id}" ${assigned===g.id?'selected':''}>${esc(g.name)}</option>`).join('')}
+          </select>`}
+          <button class="icon-btn remove-person" data-id="${p.id}">×</button>
+        </div>`
+      }).join('')}
+    </div>
+    <div style="margin-top:12px"><button class="secondary" id="addPerson">＋ 団員を追加</button></div>
+  </section>
+</div>
+
+<section class="panel" style="margin-top:18px">
+  <div class="section-title">主催者ロック</div>
+  <div class="callout">4〜8桁のPINを設定します。${state.adminPinHash?'変更しない場合は空欄のままで構いません。':'初回は設定必須です。'}</div>
+  <div class="form-row" style="margin-top:14px"><div><label>主催者PIN</label><input id="adminPinInput" type="password" inputmode="numeric" maxlength="8" placeholder="例：4826"></div><div><label>PIN確認</label><input id="adminPinConfirm" type="password" inputmode="numeric" maxlength="8" placeholder="もう一度入力"></div></div>
+</section>
+
+<section class="panel voice-panel" style="margin-top:18px">
+  <div class="section-title">AivisSpeech 音声</div>
+  <div class="callout">AivisSpeechを起動した状態で接続します。ローカル版は http://127.0.0.1:8765、Engine標準URLは http://127.0.0.1:10101 です。</div>
+  <div class="voice-grid">
+    <div class="full"><label>Engine URL</label><input id="aivisEngineUrl" value="${esc(voiceSettings().engineUrl)}" placeholder="http://127.0.0.1:10101"></div>
+    <div class="full"><label>読み上げ話者 / スタイル</label><select id="aivisVoiceSelect"><option value="${voiceSettings().speakerId??''}">${esc(voiceSettings().speakerLabel||'接続テストで話者を読み込んでください')}</option></select></div>
+  </div>
+  <label class="form-check" style="margin-top:14px"><input id="aivisEnabled" class="form-check-input" type="checkbox" ${voiceSettings().enabled?'checked':''}><span class="form-check-label">ドラフト進行中の自動読み上げを有効にする</span></label>
+  <div class="voice-actions"><button class="secondary" id="aivisConnectBtn">AivisSpeech 接続テスト</button><button class="ghost" id="aivisTestBtn">▶ テスト読み上げ</button></div>
+  <div id="aivisStatus" class="voice-status ${voiceSettings().connected?'ok':''}"><span class="voice-status-dot"></span><span data-voice-status-text>${voiceSettings().connected?'前回接続済み':'未接続'}</span></div>
+  <div class="aida-preset">
+    <div class="aida-preset-title">🎙 阿井田 茂・ドラフト司会プリセット</div>
+    <div class="aida-preset-sub">中年男性のバリトンを活かし、Heavyを優先。低音加工はせず、落ち着いた発表調にします。</div>
+    <div class="voice-actions"><button class="secondary" id="applyAidaPreset">阿井田 茂を自動選択</button></div>
+    <div class="voice-param-grid">
+      <label>話速<input id="voiceSpeed" type="number" min="0.5" max="2" step="0.01" value="${voiceSettings().speedScale}"></label>
+      <label>感情表現<input id="voiceEmotion" type="number" min="0" max="2" step="0.01" value="${voiceSettings().intonationScale}"></label>
+      <label>テンポ緩急<input id="voiceTempo" type="number" min="0" max="2" step="0.01" value="${voiceSettings().tempoDynamicsScale}"></label>
+      <label>音高<input id="voicePitch" type="number" min="-0.15" max="0.15" step="0.01" value="${voiceSettings().pitchScale}"></label>
+      <label>音量<input id="voiceVolume" type="number" min="0" max="2" step="0.01" value="${voiceSettings().volumeScale}"></label>
+    </div>
+  </div>
+  <div class="voice-note">読み上げ：開幕／巡開始／選択希望グループ／各参加者の指名／競合／抽選当選／再指名／終了</div>
+</section>
+
+<section class="panel" style="margin-top:18px"><div class="section-title">保存方式</div><div class="callout">進行は各操作ごとに自動保存されます。同じ端末なら途中から再開できます。</div></section>`
+}
+
+function teamSummary(t,i){
+  const colors=['#e16a72','#66a8ff','#58c991','#d7a446'];
+  return `<div class="team-card" style="--team:${colors[i]}"><div class="team-tag">PARTICIPANT ${i+1}</div><div class="team-name">${esc(t.name)}</div><div class="team-leader">操作：${esc(person(t.leaderId)?.name||'-')}</div><div class="team-count">獲得グループ ${t.groupsWon.length}組 ／ 団員 ${t.members.length}名</div><div class="team-roster">${t.groupsWon.length?t.groupsWon.map(gid=>{const g=group(gid);return`<div class="group-win-card"><strong>${esc(g?.name||gid)}</strong><span>${esc(groupMembersLabel(gid))}</span></div>`}).join(''):'<span class="muted">まだ獲得なし</span>'}</div></div>`
+}
+
+function draftBoardHTML(publicMode=false){
+  const rows=[...state.board];
+  if(state.started&&state.phase!=='complete'&&Object.keys(state.currentRoundAssignments).length){
+    rows.push({round:state.round,assignments:{...state.currentRoundAssignments},current:true});
+  }
+  if(!rows.length)return'<div class="empty">まだ獲得結果はありません</div>';
+  return `<table class="draft-board"><thead><tr><th>巡目</th>${state.teams.map(t=>`<th>${esc(t.name)}</th>`).join('')}</tr></thead><tbody>${rows.map(rec=>`<tr><td><strong>第${rec.round}巡${rec.current?'（進行中）':''}</strong></td>${state.teams.map(t=>{
+    const gid=rec.assignments?.[t.id];
+    if(!gid)return'<td><span class="board-hidden">未確定</span></td>';
+    const g=group(gid);
+    return `<td class="group-board-cell"><div class="board-name">${esc(g?.name||gid)}</div><div class="group-member-mini">${esc(groupMembersLabel(gid))}</div>${rec.current?'<span class="board-badge">獲得確定</span>':''}</td>`
+  }).join('')}</tr>`).join('')}</tbody></table>`
+}
+
+function attemptHistoryHTML(){
+  if(!state.currentAttemptHistory.length)return'<div class="empty">今巡の指名履歴はまだありません</div>';
+  return `<div class="attempt-list">${state.currentAttemptHistory.map((a,i)=>`<div class="attempt-card"><div class="attempt-head"><strong>${i===0?'初回指名':`再指名 ${i}回目`}</strong><span class="muted">${a.finalized?'処理済み':'進行中'}</span></div><div class="attempt-picks">${a.activeTeamIds.map(tid=>`<span>${esc(team(tid)?.name||tid)} → ${esc(group(a.picks?.[tid])?.name||'未発表')}</span>`).join('')}</div></div>`).join('')}</div>`
+}
+
+function adminView(){
+  const candidates=availableGroups(),active=activeTeamIds(),selecting=state.phase==='selecting'&&!state.phaseBeforePause;
+  const attemptLabel=state.roundAttempt>1?`再指名 ${state.roundAttempt-1}回目`:'初回指名';
+  return `${onlineHostPanelHTML()}<div class="page-head"><div><div class="kicker">🎛 NYOUNCER CONTROL BOOTH</div><h2>主催者管理</h2><p>${esc(state.eventName)} ／ <span class="autosave-dot"></span>自動保存中</p></div><div class="admin-actions"><button class="ghost" data-go="setup">設定編集</button><button class="ghost" data-go="spectator">観戦席</button><button class="ghost danger" id="lockAdminBtn">🔒 ロック</button>${state.phase==='lottery'&&state.pendingConflict?'<button class="secondary" id="openLotteryAdmin">✉️ 抽選会場</button>':''}<button class="primary" id="startRound" ${['opening','selecting','reveal','lottery','paused','complete'].includes(state.phase)?'disabled':''}>${state.started?`第${state.round}巡を開始`:'ドラフト開始'}</button></div></div>
+
+${state.phase==='selecting'?`<div class="${state.roundAttempt>1?'rebid-banner':'panel'}" style="${state.roundAttempt>1?'':'border-color:rgba(83,194,139,.35);margin-bottom:18px'}"><strong>第${state.round}巡 ${attemptLabel}</strong><span>${active.length}名が指名対象。獲得済みの参加者はこの巡から抜けています。</span></div>`:''}
+
+<div class="grid-4">${state.teams.map((t,i)=>teamSummary(t,i)).join('')}</div>
+
+<div class="grid-2" style="margin-top:18px">
+  <section class="panel">
+    <div class="section-title">🐾 現在の進行</div>
+    <div class="grid-4">
+      <div class="status-box"><div class="status-label">ROUND</div><div class="status-value">第${state.round}巡</div></div>
+      <div class="status-box"><div class="status-label">ATTEMPT</div><div class="status-value" style="font-size:18px">${attemptLabel}</div></div>
+      <div class="status-box"><div class="status-label">ACTIVE</div><div class="status-value">${active.length}名</div></div>
+      <div class="status-box"><div class="status-label">GROUPS</div><div class="status-value">${availableGroups().length}組</div></div>
+    </div>
+    <div class="sep"></div>
+    <div class="section-title">各参加者の今巡状況</div>
+    <div class="grid-4">${state.teams.map(t=>{
+      const won=state.currentRoundAssignments[t.id],sid=state.selections[t.id];
+      return `<div class="status-box"><div class="status-label">${esc(t.name)}</div><div class="status-value" style="font-size:16px">${won?`✅ ${esc(group(won)?.name||won)}`:sid?esc(group(sid)?.name||sid):'未選択'}</div><div class="muted" style="font-size:11px;margin-top:6px">${won?'今巡獲得済み':sid?'指名確定':'指名待ち'}</div></div>`
+    }).join('')}</div>
+    <div class="admin-actions" style="margin-top:18px"><button class="secondary ${allSelected()&&state.phase==='selecting'?'':'disabled'}" id="revealBtn">${state.roundAttempt>1?'再指名を発表':'指名発表を開始'}</button><button class="ghost" id="clearSelections">未確定の指名を解除</button></div>
+  </section>
+  <section class="panel"><div class="section-title">進行ログ</div><div class="log">${state.logs.length?state.logs.map(l=>`<div class="log-item"><strong>${esc(l.at)}</strong>　${esc(l.msg)}</div>`).join(''):'<div class="empty">まだログはありません</div>'}</div></section>
+</div>
+
+<section class="panel" style="margin-top:18px"><div class="section-title">1人テストモード</div><div class="grid-4">${state.teams.map(t=>{
+  const won=state.currentRoundAssignments[t.id],current=state.selections[t.id],can=selecting&&!won&&!current;
+  return `<div class="status-box"><div class="status-label">${esc(t.name)} ／ ${esc(person(t.leaderId)?.name||'')}</div>${won?`<div class="group-win-card"><strong>${esc(group(won)?.name||won)} 獲得済み</strong><span>${esc(groupMembersLabel(won))}</span></div>`:`<select class="solo-pick" data-team="${t.id}" ${can?'':'disabled'} style="margin-top:10px"><option value="">指名グループを選択</option>${candidates.map(g=>`<option value="${g.id}">${esc(g.name)}（${g.memberIds.length}名）</option>`).join('')}</select><button class="primary solo-confirm ${can?'':'disabled'}" data-team="${t.id}" style="width:100%;margin-top:10px">${current?`${esc(group(current)?.name)} 指名済み`:'このグループを指名'}</button>`}</div>`
+}).join('')}</div></section>
+
+<section class="panel" style="margin-top:18px"><div class="section-title">今巡の指名・再指名履歴</div>${attemptHistoryHTML()}</section>
+<section class="panel" style="margin-top:18px"><div class="section-title">🏆 ドラフトボード</div>${draftBoardHTML(false)}</section>
+
+<section class="panel" style="margin-top:18px">
+  <div class="section-title">主催者 緊急操作</div>
+  <div class="callout">誤操作・通信トラブル用です。グループの強制獲得もここから行えます。</div>
+  <div class="emergency-grid" style="margin-top:14px"><button class="secondary" id="pauseBtn">${state.phase==='paused'?'▶ 再開':'⏸ 一時停止'}</button><button class="ghost" id="undoCheckpointBtn">↶ 1操作戻す</button><button class="ghost" id="skipRoundBtn">今巡を強制終了</button><button class="ghost" id="resetLotteryBtn" ${state.phase==='lottery'?'':'disabled'}>抽選を最初から</button><button class="ghost danger" id="finishDraftBtn" ${state.phase==='complete'?'disabled':''}>ドラフトを終了</button>${state.phase==='complete'?'<button class="secondary" id="downloadResultBtn">結果画像を保存</button>':''}</div>
+  <div class="force-grid"><div><label>参加者</label><select id="forceTeam">${active.map(id=>`<option value="${id}">${esc(team(id)?.name||id)}</option>`).join('')}</select></div><div><label>未獲得グループ</label><select id="forceGroup"><option value="">選択してください</option>${availableGroups().map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join('')}</select></div><button class="ghost danger" id="forceAssignBtn">強制獲得</button></div>
+</section>
+<div class="hook-box" style="margin-top:18px"><span class="voice-live ${voiceSettings().enabled?'':'off'}">${voiceSettings().enabled?'🔊 AivisSpeech 自動読み上げ ON':'🔇 AivisSpeech OFF'}</span>　話者：${esc(voiceSettings().speakerLabel||'未設定')}</div>`
+}
+
+function leaderLotteryHTML(t){
+  const c=ensureLotteryState(state.pendingConflict);
+  if(!c||!c.teamIds.includes(t.id)){
+    const won=state.currentRoundAssignments[t.id];
+    return `<div class="panel">${won?`<div class="group-win-card"><strong>第${state.round}巡 獲得確定：${esc(group(won)?.name||won)}</strong><span>${esc(groupMembersLabel(won))}</span></div><div class="empty" style="margin-top:12px">他の参加者の抽選終了をお待ちください。</div>`:'<div class="empty">現在あなたが参加する抽選はありません。</div>'}</div>`;
+  }
+  const selected=c.assignments?.[t.id],opened=c.opened?.[t.id],currentTid=c.teamIds[c.selectionIndex],chosen=new Set(Object.values(c.assignments||{}));
+  let body='';
+  if(c.lotteryPhase==='ready')body=`<div class="empty">${c.shuffling?'封筒をシャッフル中……':'主催者が抽選開始を準備しています。'}</div>`;
+  else if(c.openingTeam)body=`<div class="empty">${esc(team(c.openingTeam)?.name||'参加者')} が封筒を開封中……</div>`;
+  else if(c.lotteryPhase==='select'&&currentTid===t.id)body=`<div class="callout">あなたの番です。好きな封筒を1枚選んでください。</div><div class="envelope-grid">${c.displayOrder.map((id,i)=>chosen.has(id)?`<div class="envelope taken"><span>選択済み</span></div>`:`<button class="envelope pickable rep-envelope" data-envelope-id="${id}"><span>封筒 ${i+1}</span><small>この封筒を引く</small></button>`).join('')}</div>`;
+  else if(c.lotteryPhase==='select')body=`<div class="empty">${esc(team(currentTid)?.name||'他の参加者')} が封筒を選択中です。</div>`;
+  else if(c.lotteryPhase==='open'&&selected&&!opened)body=`<div class="callout">封筒を確保しました。開封順は自由です。</div><div style="display:grid;place-items:center;margin-top:18px"><button class="owned-envelope rep-open" data-open-team="${t.id}"><span class="owner">${esc(t.name)}</span><span class="paper">封筒を開ける</span><small>タップして開封</small></button></div>`;
+  else if(opened)body=`<div class="empty">${opened==='win'?'🎉 グループ獲得！':'はずれ。再指名になります。'}</div>`;
+  else body='<div class="empty">抽選進行をお待ちください。</div>';
+  return `<section class="rep-lottery"><div class="kicker">LOTTERY</div><h2 style="margin:8px 0">${esc(group(c.groupId)?.name||'')} 競合抽選</h2><div class="callout">${esc(groupMembersLabel(c.groupId))}</div>${body}</section>`
+}
+
+function leaderView(teamId){
+  const t=team(teamId);if(!t)return'<div class="empty">参加者が見つかりません</div>';
+  if(state.phase==='lottery')return`<div class="page-head"><div><div class="kicker">🐾 PARTICIPANT BOOTH</div><h2>${esc(t.name)} 抽選席</h2><p>${esc(person(t.leaderId)?.name||'')} 専用</p></div><button class="ghost" data-go="home">退出</button></div>${leaderLotteryHTML(t)}<section class="panel" style="margin-top:18px"><div class="section-title">🏆 公開済みドラフトボード</div>${draftBoardHTML(true)}</section>`;
+
+  const won=state.currentRoundAssignments[t.id],current=state.selections[t.id],candidates=availableGroups(),canSelect=state.phase==='selecting'&&!won&&!current;
+  return `<div class="page-head"><div><div class="kicker">🐾 PARTICIPANT BOOTH</div><h2>${esc(t.name)} 指名席</h2><p>${esc(person(t.leaderId)?.name||'')} 専用画面</p></div><button class="ghost" data-go="home">退出</button></div>
+  <div class="draft-layout"><aside class="sidebar">
+    <div class="status-box"><div class="status-label">CURRENT ROUND</div><div class="status-value">第${state.round}巡</div></div>
+    <div class="status-box"><div class="status-label">ATTEMPT</div><div class="status-value" style="font-size:19px">${state.roundAttempt>1?`再指名 ${state.roundAttempt-1}回目`:'初回指名'}</div></div>
+    <div class="team-card"><div class="team-tag">${esc(t.name)} ACQUIRED GROUPS</div><div class="team-roster">${t.groupsWon.length?t.groupsWon.map(gid=>`<div class="group-win-card"><strong>${esc(group(gid)?.name||gid)}</strong><span>${esc(groupMembersLabel(gid))}</span></div>`).join(''):'<span class="muted">まだ獲得なし</span>'}</div></div>
+    <div class="nyouncer-tip"><img data-nyouncer-img src="${nyouncerPoseSrc(nyouncerCurrentPose())}" alt="ニャウンサー"><div><strong>ニャウンサー</strong><span data-nyouncer-caption>${esc(nyouncerPhaseLine())}</span></div></div>
+    <div class="callout">他の参加者の指名は発表まで非公開。競合で外れた場合は同じ巡のまま再指名します。</div>
+  </aside>
+  <section class="panel"><div class="section-title">🐾 指名可能なグループ</div>
+    ${won?`<div class="group-win-card"><strong>第${state.round}巡は獲得済み：${esc(group(won)?.name||won)}</strong><span>${esc(groupMembersLabel(won))}</span></div><div class="empty" style="margin-top:14px">この巡の残りの指名・抽選が終わるまでお待ちください。</div>`:
+    candidates.length?`<div class="candidate-grid">${candidates.map((g,i)=>`<button class="candidate group-candidate ${current===g.id?'selected':''} ${canSelect||current===g.id?'':'locked'}" data-candidate="${g.id}"><div><div class="cand-no">GROUP ${String(i+1).padStart(2,'0')} ／ ${g.memberIds.length}名</div><div class="cand-name">${esc(g.name)}</div></div><div class="group-member-list">${g.memberIds.map(id=>`<span>${esc(person(id)?.name||id)}</span>`).join('')}</div></button>`).join('')}</div>`:'<div class="empty">指名可能なグループはありません</div>'}
+    ${!won?`<div class="selection-bar"><div><span class="muted">選択中：</span> <strong id="selectedName">${current?esc(group(current)?.name):'未選択'}</strong></div><button class="primary ${canSelect?'':'disabled'}" id="confirmPick">このグループを指名</button></div>`:''}
+  </section></div><section class="panel" style="margin-top:18px"><div class="section-title">🏆 公開済みドラフトボード</div>${draftBoardHTML(true)}</section>`
+}
+
+function spectatorLotteryCenter(){
+  const c=ensureLotteryState(state.pendingConflict);if(!c)return'';let status='';
+  if(c.shuffling)status='封筒をシャッフル中……';
+  else if(c.openingTeam)status=`${esc(team(c.openingTeam)?.name||'')} が封筒を開封中……`;
+  else if(c.lotteryPhase==='ready')status='抽選準備中';
+  else if(c.lotteryPhase==='select')status=`${esc(team(c.teamIds[c.selectionIndex])?.name||'')} が封筒を選択中`;
+  else status='各参加者が封筒を開封中';
+  return `<div style="width:100%"><div class="round-label">第${state.round}巡 グループ抽選</div><div class="stage-title" style="font-size:50px">${esc(group(c.groupId)?.name||'')}</div><div class="stage-sub">${esc(groupMembersLabel(c.groupId))}<br>${c.teamIds.length}名競合 ／ ${status}</div><div class="spectator-lottery-status">${c.teamIds.map(id=>`<span class="chip">${esc(team(id)?.name||id)}　${c.opened?.[id]==='win'?'🎉 当たり':c.opened?.[id]==='lose'?'開封済み':c.assignments?.[id]?'封筒確保':'待機'}</span>`).join('')}</div></div>`
+}
+function spectatorView(){
+  const r=state.lastReveal;let center='';
+  if(state.phase==='paused')center=`<div class="paused-screen"><div class="round-label">EVENT PAUSED</div><div class="stage-title">一時停止</div><div class="stage-sub">主催者の再開をお待ちください</div></div>`;
+  else if(!state.started)center=`<div><div class="round-label">${esc(state.eventName)}</div><div class="stage-title">開幕待機中</div><div class="stage-sub">まもなくグループドラフト会議が始まります</div></div>`;
+  else if(state.phase==='opening')center=`<div><div class="round-label">GROUP DRAFT CONFERENCE</div><div class="opening-logo">DRAFT<br>START</div><div class="stage-sub">${esc(state.eventName)}</div></div>`;
+  else if(state.phase==='selecting')center=`<div><div class="round-label">第${state.round}巡 ${state.roundAttempt>1?`再指名 ${state.roundAttempt-1}回目`:'選択希望グループ'}</div><div class="stage-title">${state.roundAttempt>1?'再指名受付中':'指名受付中'}</div><div class="stage-sub">残る${activeTeamIds().length}名が、未獲得グループから選択しています</div></div>`;
+  else if(state.phase==='reveal'&&r)center=`<div style="width:100%"><div class="round-label">第${r.round}巡 ${r.attempt>1?`再指名 ${r.attempt-1}回目`:'選択希望グループ'}</div><div class="stage-title" style="font-size:42px">指名発表</div><div class="reveal-grid">${r.activeTeamIds.map((tid,i)=>{const shown=i<state.revealIndex,gid=r.selections[tid];return`<div class="reveal-card live-reveal-card ${shown?'just-revealed':'hidden-pick'} ${shown&&r.conflicts.includes(gid)?'conflict':''}"><div class="reveal-team">${esc(team(tid)?.name||tid)}</div><div class="reveal-name">${shown?esc(group(gid)?.name||'-'):'？？？'}</div>${shown?`<div class="group-member-mini">${esc(groupMembersLabel(gid))}</div>`:''}</div>`}).join('')}</div><div class="stage-sub" style="margin-top:24px">${state.revealIndex<r.activeTeamIds.length?'順次発表中……':r.conflicts.length?'競合発生 — 抽選へ':'獲得確定'}</div></div>`;
+  else if(state.phase==='lottery')center=spectatorLotteryCenter();
+  else if(state.phase==='complete')center=`<div style="width:100%"><div class="round-label">GROUP DRAFT COMPLETE</div><div class="stage-title" style="font-size:54px">ドラフト終了</div><div class="stage-sub">${esc(state.eventName)}</div><div class="complete-rosters">${state.teams.map((t,i)=>teamSummary(t,i)).join('')}</div><div class="result-actions"><button class="primary" id="downloadResultBtn">結果画像を保存</button></div></div>`;
+  else center=`<div><div class="round-label">第${state.round}巡</div><div class="stage-title">次巡待機</div><div class="stage-sub">残り ${availableGroups().length}グループ</div></div>`;
+  return `<div class="page-head"><div><div class="kicker">📺 NYOUNCER LIVE</div><h2>観戦席</h2><p>ニャウンサーがお届けするグループドラフトライブ中継</p></div><button class="ghost" data-go="home">ホーム</button></div><section class="spectator-stage ${state.phase==='reveal'?'broadcast-flash':''}"><div class="stage-top"><strong>🐾 ${esc(state.eventName)}</strong><span class="live">● LIVE</span></div><div class="stage-center">${center}</div>${nyouncerMascotHTML()}<div class="stage-footer">${state.teams.map(t=>`<div class="stage-team"><strong>${esc(t.name)}</strong><span>${esc(person(t.leaderId)?.name||'')} ／ ${t.groupsWon.length}グループ獲得</span></div>`).join('')}</div></section><section class="panel" style="margin-top:18px"><div class="section-title">🏆 LIVE DRAFT BOARD</div>${draftBoardHTML(true)}</section>`
+}
+
+function bind(){
+  document.querySelectorAll('[data-go]').forEach(el=>el.onclick=()=>el.dataset.go==='admin'?requestAdminAccess():go(el.dataset.go));
+  document.querySelectorAll('[data-leader]').forEach(el=>el.onclick=()=>go('leader',el.dataset.leader));
+  const startOnlineRoomBtn=document.getElementById('startOnlineRoomBtn');if(startOnlineRoomBtn)startOnlineRoomBtn.onclick=()=>startOnlineRoom();
+  const resumeOnlineRoomBtn=document.getElementById('resumeOnlineRoomBtn');if(resumeOnlineRoomBtn)resumeOnlineRoomBtn.onclick=()=>resumeOnlineRoom();
+  document.querySelectorAll('.copy-online-link').forEach(btn=>btn.onclick=async()=>{
+    try{await navigator.clipboard.writeText(btn.dataset.url);toast('参加URLをコピーしました')}
+    catch(e){const ta=document.createElement('textarea');ta.value=btn.dataset.url;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('参加URLをコピーしました')}
+  });
+
+  const syncSetupDraft=()=>{
+    document.querySelectorAll('.person-name').forEach(inp=>{const p=person(inp.dataset.id);if(p)p.name=inp.value.trim()||p.name});
+    document.querySelectorAll('.team-name-input').forEach(inp=>{const t=team(inp.dataset.team);if(t)t.name=inp.value.trim()||t.name});
+    document.querySelectorAll('.leader-select').forEach(sel=>{const t=team(sel.dataset.team);if(t)t.leaderId=sel.value});
+    document.querySelectorAll('.group-name-input').forEach(inp=>{const g=group(inp.dataset.group);if(g)g.name=inp.value.trim()||g.name});
+    const leaders=new Set(state.teams.map(t=>t.leaderId));
+    if(document.querySelectorAll('.person-group-select').length){
+      state.groups.forEach(g=>g.memberIds=[]);
+      document.querySelectorAll('.person-group-select').forEach(sel=>{
+        const pid=sel.dataset.person,gid=sel.value;
+        if(gid&&!leaders.has(pid)){const g=group(gid);if(g&&!g.memberIds.includes(pid))g.memberIds.push(pid)}
+      });
+    }else{
+      state.groups.forEach(g=>g.memberIds=g.memberIds.filter(pid=>!leaders.has(pid)));
+    }
+    state.eventName=document.getElementById('eventNameInput')?.value.trim()||state.eventName;
+  };
+
+  const newDraftBtn=document.getElementById('newDraftBtn');if(newDraftBtn)newDraftBtn.onclick=async()=>{if(await confirmAction({title:'新しいドラフト',message:'現在の進行を消して初期設定から始めます。',ok:'新規作成',danger:true})){state=initialState();lockAdmin();clearHistory();saveState();tempSelected=null;go('setup')}};
+
+  const add=document.getElementById('addPerson');if(add)add.onclick=()=>{syncSetupDraft();const next=Math.max(0,...state.people.map(p=>Number(p.id.slice(1))||0))+1;state.people.push({id:'p'+next,name:`団員${String(next).padStart(2,'0')}`});saveState();render()};
+  document.querySelectorAll('.remove-person').forEach(btn=>btn.onclick=()=>{syncSetupDraft();const id=btn.dataset.id;if(state.people.length<=8)return toast('抽選参加者と各グループの団員を確保するため、団員は最低8名必要です');if(state.teams.some(t=>t.leaderId===id))return toast('抽選参加者に設定中です');const owned=state.groups.some(g=>g.acquiredBy&&g.memberIds.includes(id));if(owned)return toast('獲得済みグループの団員は削除できません');state.groups.forEach(g=>g.memberIds=g.memberIds.filter(pid=>pid!==id));state.people=state.people.filter(p=>p.id!==id);saveState();render()});
+
+  const addGroup=document.getElementById('addGroup');if(addGroup)addGroup.onclick=()=>{if(state.started)return toast('ドラフト開始後はグループ追加できません');syncSetupDraft();const next=Math.max(0,...state.groups.map(g=>Number(String(g.id).replace(/\D/g,''))||0))+1;state.groups.push({id:'g'+next,name:`グループ${next}`,memberIds:[],acquiredBy:null});saveState();render()};
+  document.querySelectorAll('.remove-group').forEach(btn=>btn.onclick=async()=>{if(state.started)return toast('ドラフト開始後はグループ削除できません');syncSetupDraft();const gid=btn.dataset.group,g=group(gid);if(!g)return;if(state.groups.length<=4)return toast('グループは最低4つ必要です');if(await confirmAction({title:'グループ削除',message:'このグループを削除します。所属団員は未所属になります。',name:g.name,ok:'削除',danger:true})){state.groups=state.groups.filter(x=>x.id!==gid);saveState();render()}});
+
+  const saveSetup=document.getElementById('saveSetup');if(saveSetup)saveSetup.onclick=async()=>{
+    syncSetupDraft();
+    const leaders=state.teams.map(t=>t.leaderId);
+    if(new Set(leaders).size!==4)return toast('抽選参加者4名は別々の人にしてください');
+    if(state.groups.length<4)return toast('グループは最低4つ必要です');
+    const empty=state.groups.find(g=>!g.memberIds.length);
+    if(empty)return toast(`${empty.name} が空です。1名以上設定してください`);
+    const groupNames=state.groups.map(g=>g.name.trim());
+    if(new Set(groupNames).size!==groupNames.length)return toast('グループ名は重複しないようにしてください');
+    if(state.started&&state.phase!=='complete'){
+      const ok=await confirmAction({title:'進行中の設定保存',message:'ドラフト進行中です。名前や音声設定の変更は可能ですが、グループ構成変更は進行に影響する場合があります。',ok:'保存する'});
+      if(!ok)return;
+    }
+    const pin=(document.getElementById('adminPinInput')?.value||'').trim(),pin2=(document.getElementById('adminPinConfirm')?.value||'').trim();
+    if(!state.adminPinHash&&!pin)return toast('主催者PINを設定してください');
+    if(pin){if(!/^\d{4,8}$/.test(pin))return toast('PINは4〜8桁の数字で設定してください');if(pin!==pin2)return toast('PIN確認が一致しません');state.adminPinHash=await hashPin(pin);lockAdmin()}
+    const vs=document.getElementById('aivisVoiceSelect');const row=flattenAivisSpeakers(aivisSpeakersCache).find(r=>String(r.id)===String(vs?.value));
+    state.voice={...voiceSettings(),enabled:!!document.getElementById('aivisEnabled')?.checked,engineUrl:cleanEngineUrl(document.getElementById('aivisEngineUrl')?.value||voiceSettings().engineUrl),speakerId:vs?.value!==''&&vs?.value!=null?Number(vs.value):voiceSettings().speakerId,speakerLabel:row?.label||voiceSettings().speakerLabel,announcerPreset:true,speedScale:Number(document.getElementById('voiceSpeed')?.value||voiceSettings().speedScale),intonationScale:Number(document.getElementById('voiceEmotion')?.value||voiceSettings().intonationScale),tempoDynamicsScale:Number(document.getElementById('voiceTempo')?.value||voiceSettings().tempoDynamicsScale),pitchScale:Number(document.getElementById('voicePitch')?.value||voiceSettings().pitchScale),volumeScale:Number(document.getElementById('voiceVolume')?.value||voiceSettings().volumeScale)};
+    state.setupComplete=true;saveState();toast('設定を保存しました');go('home')
+  };
+
+  const aivisConnectBtn=document.getElementById('aivisConnectBtn');if(aivisConnectBtn)aivisConnectBtn.onclick=()=>{ensureAivisAudio();connectAivis()};
+  const aivisTestBtn=document.getElementById('aivisTestBtn');if(aivisTestBtn)aivisTestBtn.onclick=()=>testAivisVoice();
+  const aivisVoiceSelect=document.getElementById('aivisVoiceSelect');if(aivisVoiceSelect){fillAivisVoiceSelect();aivisVoiceSelect.onchange=()=>{const row=flattenAivisSpeakers(aivisSpeakersCache).find(r=>String(r.id)===String(aivisVoiceSelect.value));state.voice={...voiceSettings(),speakerId:Number(aivisVoiceSelect.value),speakerLabel:row?.label||aivisVoiceSelect.options[aivisVoiceSelect.selectedIndex]?.text||''};saveState()}};
+  const aivisEnabled=document.getElementById('aivisEnabled');if(aivisEnabled)aivisEnabled.onchange=()=>{state.voice={...voiceSettings(),enabled:aivisEnabled.checked};saveState()};
+  const applyAidaPresetBtn=document.getElementById('applyAidaPreset');if(applyAidaPresetBtn)applyAidaPresetBtn.onclick=()=>applyAidaAnnouncerPreset({selectVoice:true,notify:true});
+  const voiceParamMap={voiceSpeed:'speedScale',voiceEmotion:'intonationScale',voiceTempo:'tempoDynamicsScale',voicePitch:'pitchScale',voiceVolume:'volumeScale'};
+  Object.entries(voiceParamMap).forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.onchange=()=>{state.voice={...voiceSettings(),announcerPreset:true,[key]:Number(el.value)};saveState()}});
+
+  const lockAdminBtn=document.getElementById('lockAdminBtn');if(lockAdminBtn)lockAdminBtn.onclick=()=>{lockAdmin();go('home');toast('主催者画面をロックしました')};
+  const start=document.getElementById('startRound');if(start)start.onclick=()=>{ensureAivisAudio();beginRound()};
+
+  document.querySelectorAll('[data-candidate]').forEach(btn=>btn.onclick=()=>{tempSelected=btn.dataset.candidate;document.querySelectorAll('[data-candidate]').forEach(x=>x.classList.toggle('selected',x.dataset.candidate===tempSelected));const sn=document.getElementById('selectedName');if(sn)sn.textContent=group(tempSelected)?.name||'未選択'});
+  const confirmPick=document.getElementById('confirmPick');if(confirmPick)confirmPick.onclick=async()=>{
+    const t=team(view.team);if(!t||state.phase!=='selecting'||state.currentRoundAssignments[t.id]||state.selections[t.id])return;
+    if(!tempSelected)return toast('グループを選択してください');const g=group(tempSelected);if(!g||g.acquiredBy)return toast('そのグループはすでに獲得されています');
+    if(!await confirmAction({title:`第${state.round}巡 ${state.roundAttempt>1?'再指名':'指名'}確認`,message:`${t.name} のグループ指名を確定します。`,name:`${g.name}（${groupMembersLabel(g.id)}）`,ok:'指名確定'}))return;
+    if(isOnlineParticipant()){await onlineSendTeamCommand('pick',{groupId:g.id});tempSelected=null;toast('主催者へ指名を送信しました');return}
+    checkpoint(`${t.name}のグループ指名`);state.selections[t.id]=g.id;log(`${t.name} が ${g.name} を指名`);tempSelected=null;saveState();render();toast('指名を確定しました')
+  };
+
+  document.querySelectorAll('.solo-confirm').forEach(btn=>btn.onclick=async()=>{
+    const tid=btn.dataset.team,t=team(tid),sel=document.querySelector(`.solo-pick[data-team="${tid}"]`);
+    if(!t||state.phase!=='selecting'||state.currentRoundAssignments[tid]||state.selections[tid])return;
+    if(!sel?.value)return toast('グループを選択してください');const g=group(sel.value);if(!g||g.acquiredBy)return toast('そのグループは獲得済みです');
+    if(!await confirmAction({title:'代理指名確認',message:`主催者が ${t.name} の指名を代理確定します。`,name:g.name,ok:'確定'}))return;
+    checkpoint(`${t.name}代理指名`);state.selections[tid]=g.id;log(`${t.name} の ${g.name} 指名を主催者が代理確定`);saveState();render()
+  });
+
+  const reveal=document.getElementById('revealBtn');if(reveal)reveal.onclick=()=>{ensureAivisAudio();revealSelections()};
+  const clear=document.getElementById('clearSelections');if(clear)clear.onclick=async()=>{if(!await confirmAction({title:'未確定指名を解除',message:'現在指名中の参加者だけを未選択へ戻します。獲得済みグループは維持します。',ok:'解除する',danger:true}))return;checkpoint('未確定指名解除');activeTeamIds().forEach(id=>state.selections[id]=null);state.phase='selecting';log(`第${state.round}巡の未確定指名を解除`);saveState();render()};
+
+  const openLotteryAdmin=document.getElementById('openLotteryAdmin');if(openLotteryAdmin)openLotteryAdmin.onclick=()=>openLotteryModal();
+  document.querySelectorAll('.rep-envelope').forEach(btn=>btn.onclick=()=>isOnlineParticipant()?onlineSendTeamCommand('envelope_select',{envelopeId:btn.dataset.envelopeId}):selectEnvelope(btn.dataset.envelopeId,view.team));
+  document.querySelectorAll('.rep-open').forEach(btn=>btn.onclick=()=>isOnlineParticipant()?onlineSendTeamCommand('envelope_open',{}):openEnvelope(btn.dataset.openTeam,view.team));
+
+  const pauseBtn=document.getElementById('pauseBtn');if(pauseBtn)pauseBtn.onclick=()=>togglePause();
+  const undoBtn=document.getElementById('undoCheckpointBtn');if(undoBtn)undoBtn.onclick=async()=>{if(await confirmAction({title:'1操作戻す',message:'直前の重要操作の直前まで進行を戻します。',ok:'戻す',danger:true}))undoCheckpoint()};
+  const skip=document.getElementById('skipRoundBtn');if(skip)skip.onclick=async()=>{if(await confirmAction({title:'今巡を強制終了',message:`第${state.round}巡を現在の獲得状況のまま終了します。`,ok:'強制終了',danger:true})){checkpoint('巡目強制終了');finalizeRoundAndAdvance(true)}};
+  const resetLottery=document.getElementById('resetLotteryBtn');if(resetLottery)resetLottery.onclick=async()=>{if(state.pendingConflict&&await confirmAction({title:'抽選をやり直す',message:'封筒選択・開封状況をすべてリセットします。',ok:'抽選リセット',danger:true})){checkpoint('抽選リセット');delete state.pendingConflict.envelopes;ensureLotteryState(state.pendingConflict);saveState();openLotteryModal();render()}};
+  const finish=document.getElementById('finishDraftBtn');if(finish)finish.onclick=async()=>{if(await confirmAction({title:'ドラフト終了',message:'現在の獲得状況でドラフトを終了します。',ok:'終了する',danger:true}))finishDraft(true)};
+  const force=document.getElementById('forceAssignBtn');if(force)force.onclick=async()=>{
+    const tid=document.getElementById('forceTeam')?.value,gid=document.getElementById('forceGroup')?.value;
+    if(!tid||!gid)return toast('参加者とグループを選択してください');if(state.currentRoundAssignments[tid])return toast('この参加者は今巡すでに獲得済みです');
+    const g=group(gid);if(!g||g.acquiredBy)return toast('そのグループは獲得済みです');
+    if(await confirmAction({title:'強制獲得',message:`主催者権限で ${team(tid)?.name} にグループを獲得させます。`,name:g.name,ok:'強制獲得',danger:true})){checkpoint('強制獲得');awardGroup(tid,gid,'forced');state.selections[tid]=null;log(`主催者操作：${team(tid).name} が ${g.name} を強制獲得`);if(activeTeamIds().length===0)completeRound();else{saveState();render()}}
+  };
+  document.querySelectorAll('#downloadResultBtn').forEach(b=>b.onclick=downloadResultImage);
+}
+
+async function beginRound(){
+  if(['opening','selecting','reveal','lottery','paused','complete'].includes(state.phase))return;
+  if(availableGroups().length<4){
+    if(!state.started)return toast('ドラフト開始には未獲得グループが4つ以上必要です');
+    return finishDraft(false);
+  }
+  checkpoint(state.started?'次巡開始':'ドラフト開始');
+  state.selections={A:null,B:null,C:null,D:null};
+  state.currentRoundAssignments={};
+  state.currentAttemptHistory=[];
+  state.roundAttempt=1;
+  state.pendingConflict=null;
+  state.lastReveal=null;
+  state.revealIndex=0;
+
+  if(!state.started){
+    state.started=true;state.phase='opening';state.openingUntil=Date.now()+2600;log(`${state.eventName} 開幕`);saveState();render();
+    await Promise.all([sleep(2600),announce('opening',{eventName:state.eventName})]);
+    state=loadState();
+    if(state.phase==='opening'){
+      state.phase='selecting';state.openingUntil=null;log(`第${state.round}巡 グループ指名受付開始`);saveState();render();
+      announce('round_start',{round:state.round});
+    }
+  }else{
+    state.phase='selecting';log(`第${state.round}巡 グループ指名受付開始`);saveState();render();
+    announce('round_start',{round:state.round});
+  }
+}
+
+async function revealSelections(){
+  const active=activeTeamIds();
+  if(!allSelected()||state.phase!=='selecting')return toast(`残る${active.length}名すべての指名が必要です`);
+  checkpoint(state.roundAttempt>1?'再指名発表開始':'指名発表開始');
+
+  const pickGroups={};
+  active.forEach(tid=>{const gid=state.selections[tid];(pickGroups[gid]??=[]).push(tid)});
+  const conflicts=Object.entries(pickGroups).filter(([,ids])=>ids.length>1).map(([gid])=>gid);
+
+  state.lastReveal={
+    round:state.round,
+    attempt:state.roundAttempt,
+    selections:{...state.selections},
+    activeTeamIds:[...active],
+    conflicts
+  };
+  state.revealIndex=0;
+  state.phase='reveal';
+
+  state.currentAttemptHistory.push({
+    attempt:state.roundAttempt,
+    activeTeamIds:[...active],
+    picks:Object.fromEntries(active.map(id=>[id,state.selections[id]])),
+    results:Object.fromEntries(active.map(id=>[id,{groupId:state.selections[id],mode:'pending',acquired:false}])),
+    finalized:false
+  });
+
+  log(`第${state.round}巡 ${state.roundAttempt>1?`再指名${state.roundAttempt-1}回目`:'初回指名'} 発表開始`);
+  saveState();render();resumeRevealSequence();
+}
+
+async function resumeRevealSequence(){
+  if(revealRunner||state.phase!=='reveal')return;revealRunner=true;
+  try{
+    await announce('reveal_start',{round:state.round});
+    await sleep(450);
+    const r=state.lastReveal;
+    while(state.phase==='reveal'&&r&&state.revealIndex<r.activeTeamIds.length){
+      state=loadState();if(state.phase!=='reveal')break;
+      const rr=state.lastReveal;if(!rr)break;
+      const tid=rr.activeTeamIds[state.revealIndex];
+      state.revealIndex++;
+      saveState();render();
+      await announce('pick_reveal',{round:state.round,team:team(tid)?.name,group:group(state.selections[tid])?.name});
+      await sleep(600);
+    }
+    if(state.phase==='reveal'){await sleep(800);state=loadState();if(state.phase==='reveal')finalizeReveal()}
+  }finally{revealRunner=false}
+}
+
+function currentAttempt(){return state.currentAttemptHistory[state.currentAttemptHistory.length-1]||null}
+
+function finalizeReveal(){
+  const r=state.lastReveal;if(!r)return;
+  const pickGroups={};
+  r.activeTeamIds.forEach(tid=>{const gid=state.selections[tid];(pickGroups[gid]??=[]).push(tid)});
+  const conflicts=Object.entries(pickGroups).filter(([,ids])=>ids.length>1).map(([gid])=>gid);
+  const attempt=currentAttempt();
+
+  Object.entries(pickGroups).filter(([,ids])=>ids.length===1).forEach(([gid,ids])=>{
+    const tid=ids[0];awardGroup(tid,gid,'direct');
+    log(`${team(tid)?.name} が ${group(gid)?.name} を単独指名で獲得`);
+  });
+
+  if(conflicts.length){
+    const gid=conflicts[0];
+    state.pendingConflict={
+      groupId:gid,
+      teamIds:pickGroups[gid],
+      remainingConflicts:conflicts.slice(1),
+      selectionGroups:pickGroups,
+      attemptIndex:state.currentAttemptHistory.length-1
+    };
+    state.phase='lottery';
+    announce('conflict',{round:state.round,group:group(gid)?.name,teams:pickGroups[gid].map(id=>team(id)?.name)});
+    log(`${group(gid)?.name} が ${pickGroups[gid].length}名で競合`);
+    saveState();render();if(view.screen==='admin')setTimeout(openLotteryModal,80);
+  }else{
+    if(attempt)attempt.finalized=true;
+    afterAttemptResolved();
+  }
+}
+
+function afterAttemptResolved(){
+  const remaining=activeTeamIds();
+  state.pendingConflict=null;
+  state.lastReveal=null;
+  state.revealIndex=0;
+  if(!remaining.length)return completeRound();
+
+  state.roundAttempt++;
+  state.selections={A:null,B:null,C:null,D:null};
+  state.phase='selecting';
+  log(`第${state.round}巡：残る${remaining.length}名が再指名へ`);
+  saveState();render();
+  announce('rebid',{round:state.round,count:remaining.length});
+}
+
+function completeRound(){
+  const assignments={...state.currentRoundAssignments};
+  if(Object.keys(assignments).length){
+    state.board.push({
+      round:state.round,
+      assignments,
+      attempts:JSON.parse(JSON.stringify(state.currentAttemptHistory))
+    });
+  }
+  log(`第${state.round}巡 終了`);
+  state.pendingConflict=null;
+  state.selections={A:null,B:null,C:null,D:null};
+  state.lastReveal=null;
+  state.revealIndex=0;
+  state.currentRoundAssignments={};
+  state.currentAttemptHistory=[];
+  state.roundAttempt=1;
+  state.round++;
+
+  if(availableGroups().length<4){
+    state.phase='complete';state.finishedAt=Date.now();
+    const rem=availableGroups().length;
+    log(rem?`残り${rem}グループのためドラフト終了`:'全グループの指名が完了');
+    announce('complete',{eventName:state.eventName});
+  }else{
+    state.phase='waiting';
+  }
+  saveState();render();
+}
+
+function finalizeRoundAndAdvance(forced=false){
+  if(Object.keys(state.currentRoundAssignments).length){
+    state.board.push({round:state.round,assignments:{...state.currentRoundAssignments},attempts:JSON.parse(JSON.stringify(state.currentAttemptHistory)),forced});
+  }
+  state.pendingConflict=null;state.lastReveal=null;state.revealIndex=0;
+  state.selections={A:null,B:null,C:null,D:null};
+  state.currentRoundAssignments={};state.currentAttemptHistory=[];state.roundAttempt=1;
+  state.round++;
+  if(availableGroups().length<4){state.phase='complete';state.finishedAt=Date.now();announce('complete',{eventName:state.eventName})}
+  else state.phase='waiting';
+  log(forced?'主催者が今巡を強制終了':'巡終了');
+  saveState();render();
+}
+
+function finishDraft(manual){
+  checkpoint('ドラフト終了');
+  if(Object.keys(state.currentRoundAssignments).length){
+    state.board.push({round:state.round,assignments:{...state.currentRoundAssignments},attempts:JSON.parse(JSON.stringify(state.currentAttemptHistory)),partial:true});
+  }
+  state.phase='complete';state.started=true;state.finishedAt=Date.now();state.pendingConflict=null;
+  log(manual?'主催者がドラフトを終了':'グループドラフト終了');
+  announce('complete',{eventName:state.eventName});saveState();render()
+}
+function togglePause(){if(state.phase==='paused'){checkpoint('進行再開');state.phase=state.phaseBeforePause||'waiting';state.phaseBeforePause=null;log('ドラフトを再開');saveState();render()}else{checkpoint('一時停止');state.phaseBeforePause=state.phase;state.phase='paused';log('ドラフトを一時停止');saveState();render()}}
+
+function secureRandomInt(max){if(max<=1)return 0;try{const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%max}catch(e){return Math.floor(Math.random()*max)}}
+function shuffled(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=secureRandomInt(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+function ensureLotteryAudio(){try{lotteryAudioCtx||=new(window.AudioContext||window.webkitAudioContext)();lotteryAudioCtx.resume?.()}catch(e){}}
+function tone(freq,dur=.2,gain=.05,type='sine',delay=0){try{ensureLotteryAudio();const ctx=lotteryAudioCtx,t=ctx.currentTime+delay,o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(.001,t);g.gain.exponentialRampToValueAtTime(gain,t+.015);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g).connect(ctx.destination);o.start(t);o.stop(t+dur+.02)}catch(e){}}
+function playShuffleSound(){for(let i=0;i<12;i++)tone(180+secureRandomInt(220),.08,.035,'triangle',i*.12)}
+function playEnvelopePick(){tone(330,.22,.06,'sine');tone(500,.15,.035,'sine',.08)}
+function playDrumroll(){for(let i=0;i<24;i++)tone(75+secureRandomInt(35),.05,.025+i*.001,'square',i*.07)}
+function playWinFanfare(){[392,523,659,784].forEach((f,i)=>tone(f,.52,.09,'triangle',i*.12))}
+function playLoseSound(){tone(180,.48,.06,'sine');tone(95,.45,.04,'sine',.18)}
+function playLotteryCrowd(){for(let i=0;i<22;i++)tone(120+secureRandomInt(160),.07,.02+Math.random()*.04,'square',Math.random()*1.3)}
+
+function ensureLotteryState(c){if(!c)return null;if(!Array.isArray(c.envelopes)||c.envelopes.length!==c.teamIds.length){c.envelopes=c.teamIds.map((_,i)=>`env${i+1}`);c.displayOrder=shuffled(c.envelopes);c.winnerEnvelope=c.envelopes[secureRandomInt(c.envelopes.length)];c.assignments={};c.opened={};c.selectionIndex=0;c.winnerTeam=null;c.lotteryPhase='ready'}c.assignments||={};c.opened||={};c.selectionIndex||=0;c.lotteryPhase||='ready';return c}
+function createLotteryOverlay(){let overlay=document.getElementById('lotteryOverlay');if(overlay)return overlay;overlay=document.createElement('div');overlay.id='lotteryOverlay';overlay.className='lottery-overlay';overlay.setAttribute('aria-live','assertive');overlay.innerHTML=`<div class="lottery-backdrop"></div><section class="lottery-stage"><div class="lottery-topline"><span class="kicker">NEGOTIATION RIGHTS LOTTERY</span><button id="lotteryClose" class="ghost small">抽選画面を閉じる</button></div><div id="lotteryCompetition" class="lottery-competition">競合</div><h2 id="lotteryTarget" class="lottery-target"></h2><div id="lotteryStatus" class="lottery-status"></div><div id="lotteryBoard" class="lottery-board"></div></section><div id="confetti" class="confetti"></div>`;document.body.appendChild(overlay);overlay.querySelector('#lotteryClose').onclick=()=>{if(!lotteryAnimating)overlay.classList.remove('show')};overlay.addEventListener('click',e=>{if(lotteryAnimating)return;const sh=e.target.closest('[data-shuffle]');if(sh)return shuffleConflict();const env=e.target.closest('[data-envelope-id]');if(env)return selectEnvelope(env.dataset.envelopeId,null);const op=e.target.closest('[data-open-team]');if(op)return openEnvelope(op.dataset.openTeam,null)});return overlay}
+function openLotteryModal(){const c=ensureLotteryState(state.pendingConflict);if(!c)return;const o=createLotteryOverlay();renderLotteryOverlay(c);o.classList.add('show')}
+function refreshLotteryOverlayIfNeeded(){const o=document.getElementById('lotteryOverlay');if(o?.classList.contains('show')&&state.phase==='lottery'&&state.pendingConflict)renderLotteryOverlay(ensureLotteryState(state.pendingConflict))}
+async function shuffleConflict(){const c=ensureLotteryState(state.pendingConflict);if(!c||c.lotteryPhase!=='ready'||lotteryAnimating||state.phase==='paused')return;checkpoint('抽選シャッフル');lotteryAnimating=true;c.displayOrder=shuffled(c.envelopes);c.shuffling=true;saveState();const o=createLotteryOverlay();o.classList.add('shuffling');document.getElementById('lotteryStatus').textContent='封筒をシャッフルしています……';playShuffleSound();await sleep(2300);state=loadState();const c2=ensureLotteryState(state.pendingConflict);if(!c2){lotteryAnimating=false;return}c2.lotteryPhase='select';c2.selectionIndex=0;delete c2.shuffling;saveState();o.classList.remove('shuffling');lotteryAnimating=false;renderLotteryOverlay(c2);render()}
+function selectEnvelope(envelopeId,actorTeam){const c=ensureLotteryState(state.pendingConflict);if(!c||c.lotteryPhase!=='select'||lotteryAnimating||state.phase==='paused')return;const tid=c.teamIds[c.selectionIndex];if(actorTeam&&actorTeam!==tid)return toast('現在はあなたの抽選順ではありません');if(!tid||Object.values(c.assignments).includes(envelopeId))return;checkpoint(`${team(tid)?.name||tid}封筒選択`);c.assignments[tid]=envelopeId;c.selectionIndex++;playEnvelopePick();if(c.selectionIndex>=c.teamIds.length)c.lotteryPhase='open';saveState();renderLotteryOverlay(c);render()}
+async function openEnvelope(tid,actorTeam){
+  const c=ensureLotteryState(state.pendingConflict);
+  if(!c||c.lotteryPhase!=='open'||c.opened[tid]||!c.assignments[tid]||lotteryAnimating||c.winnerTeam||state.phase==='paused')return;
+  if(actorTeam&&actorTeam!==tid)return;
+  checkpoint(`${team(tid)?.name||tid}封筒開封`);
+  lotteryAnimating=true;
+  c.openingTeam=tid;saveState();
+  const env=c.assignments[tid],isWin=env===c.winnerEnvelope;
+  const o=createLotteryOverlay();
+  if(o.classList.contains('show'))document.getElementById('lotteryStatus').textContent=`${team(tid)?.name||tid}、開封……`;
+  o.classList.add('drumroll');playDrumroll();await sleep(1750);o.classList.remove('drumroll');
+  state=loadState();const c2=ensureLotteryState(state.pendingConflict);if(!c2){lotteryAnimating=false;return}
+  delete c2.openingTeam;c2.opened[tid]=isWin?'win':'lose';if(isWin)c2.winnerTeam=tid;
+  saveState();renderLotteryOverlay(c2);render();
+  if(isWin){
+    nyouncerSpeakingPose='celebrate';updateNyouncerPose('celebrate');playWinFanfare();playLotteryCrowd();spawnConfetti();
+    if(o.classList.contains('show'))document.getElementById('lotteryStatus').textContent=`🎉 ${team(tid)?.name||tid}　交渉権獲得！`;
+    await sleep(500);
+    await announce('lottery_win',{team:team(tid)?.name,group:group(c2.groupId)?.name});
+    await sleep(900);
+    state=loadState();finishCurrentConflict(ensureLotteryState(state.pendingConflict));
+    nyouncerSpeakingPose=null;updateNyouncerPose();
+  }else{
+    playLoseSound();if(o.classList.contains('show'))document.getElementById('lotteryStatus').textContent=`${team(tid)?.name||tid}　はずれ……`;
+    await sleep(900);lotteryAnimating=false;renderLotteryOverlay(c2);render()
+  }
+}
+function renderLotteryOverlay(c){
+  const o=createLotteryOverlay(),target=group(c.groupId);
+  document.getElementById('lotteryTarget').textContent=target?.name||'';
+  document.getElementById('lotteryCompetition').textContent=`${c.teamIds.length}名競合`;
+  const status=document.getElementById('lotteryStatus'),board=document.getElementById('lotteryBoard'),chosen=new Set(Object.values(c.assignments||{}));
+  if(c.lotteryPhase==='ready'){
+    status.textContent=`${groupMembersLabel(c.groupId)} ／ 当たり封筒は決定済み。シャッフルして抽選を始めます。`;
+    board.innerHTML=`<div class="shuffle-deck">${c.displayOrder.map((id,i)=>`<div class="envelope demo" style="--i:${i}"><span>グループ抽選</span></div>`).join('')}</div><button class="primary lottery-main-btn" data-shuffle>✉️ 封筒をシャッフルする</button>`;return
+  }
+  if(c.lotteryPhase==='select'){
+    const tid=c.teamIds[c.selectionIndex];status.textContent=`${team(tid)?.name||tid}：封筒を1枚選択`;
+    board.innerHTML=`<div class="envelope-grid">${c.displayOrder.map((id,i)=>chosen.has(id)?`<div class="envelope taken"><span>選択済み</span></div>`:`<button class="envelope pickable" data-envelope-id="${id}"><span>封筒 ${i+1}</span><small>この封筒を引く</small></button>`).join('')}</div><div class="selection-ledger">${c.teamIds.map(k=>`<div><b>${esc(team(k)?.name||k)}</b><span>${c.assignments[k]?'✓ 選択済':'待機中'}</span></div>`).join('')}</div>`;return
+  }
+  status.textContent=c.winnerTeam?`${team(c.winnerTeam)?.name} が当選！`:'好きな順に封筒を開封してください。';
+  const unopened=c.teamIds.filter(k=>!c.opened[k]),allLose=c.teamIds.filter(k=>c.opened[k]).every(k=>c.opened[k]==='lose');
+  board.innerHTML=`<div class="owned-envelopes">${c.teamIds.map(k=>{const result=c.opened[k],lastCertain=unopened.length===1&&unopened[0]===k&&allLose;return`<button class="owned-envelope ${result||''}" data-open-team="${k}" ${result||c.winnerTeam?'disabled':''}><span class="owner">${esc(team(k)?.name||k)}</span><span class="paper">${result==='win'?'グループ獲得':result==='lose'?'はずれ':lastCertain?'当たり確定…？':'封筒を開ける'}</span><small>${result?'開封済み':'タップして開封'}</small></button>`}).join('')}</div>`
+}
+function spawnConfetti(){const box=document.getElementById('confetti');if(!box)return;box.innerHTML='';for(let i=0;i<70;i++){const s=document.createElement('i');s.style.left=`${secureRandomInt(100)}%`;s.style.setProperty('--delay',`${secureRandomInt(600)}ms`);s.style.setProperty('--drift',`${secureRandomInt(240)-120}px`);s.style.setProperty('--spin',`${360+secureRandomInt(720)}deg`);box.appendChild(s)}setTimeout(()=>{if(box)box.innerHTML=''},3200)}
+function finishCurrentConflict(c){
+  if(!c?.winnerTeam){lotteryAnimating=false;return}
+  const winnerId=c.winnerTeam,gid=c.groupId,wt=team(winnerId),g=group(gid);
+  awardGroup(winnerId,gid,'lottery-win');
+  const attempt=currentAttempt();
+  c.teamIds.forEach(tid=>{
+    if(attempt?.results?.[tid])Object.assign(attempt.results[tid],{mode:tid===winnerId?'lottery-win':'lottery-lose',acquired:tid===winnerId});
+  });
+  log(`抽選結果：${wt?.name} が ${g?.name} を獲得`);
+
+  const remain=c.remainingConflicts||[];
+  if(remain.length){
+    const nextGid=remain[0];
+    state.pendingConflict={
+      groupId:nextGid,
+      teamIds:c.selectionGroups[nextGid],
+      remainingConflicts:remain.slice(1),
+      selectionGroups:c.selectionGroups,
+      attemptIndex:c.attemptIndex
+    };
+    state.phase='lottery';
+    announce('conflict',{round:state.round,group:group(nextGid)?.name,teams:c.selectionGroups[nextGid].map(id=>team(id)?.name)});
+  }else{
+    if(attempt)attempt.finalized=true;
+    state.pendingConflict=null;
+  }
+
+  saveState();
+  const o=document.getElementById('lotteryOverlay');if(o)o.classList.remove('show');
+  lotteryAnimating=false;
+  render();
+  toast(`${wt?.name} が ${g?.name} を獲得しました`);
+
+  if(state.phase==='lottery'&&state.pendingConflict){
+    if(view.screen==='admin')setTimeout(openLotteryModal,300);
+  }else{
+    afterAttemptResolved();
+  }
+}
+
+function downloadResultImage(){
+  const c=document.createElement('canvas');c.width=1600;c.height=1120;const x=c.getContext('2d');
+  x.fillStyle='#f1e5d0';x.fillRect(0,0,c.width,c.height);
+  x.fillStyle='#202523';x.fillRect(0,0,c.width,175);
+  x.fillStyle='#ffd16c';x.font='800 54px sans-serif';x.fillText(state.eventName,70,82);
+  x.fillStyle='#e9ddc7';x.font='700 25px sans-serif';x.fillText('NYOUNCER GROUP DRAFT RESULT',72,126);
+
+  const positions=[[70,220],[820,220],[70,660],[820,660]];
+  state.teams.forEach((t,i)=>{
+    const [left,top]=positions[i];
+    x.fillStyle='#fffaf0';x.fillRect(left,top,710,390);
+    x.strokeStyle='#d9b66f';x.lineWidth=3;x.strokeRect(left,top,710,390);
+    x.fillStyle='#272a27';x.font='800 31px sans-serif';x.fillText(t.name,left+28,top+48);
+    x.fillStyle='#756e64';x.font='18px sans-serif';x.fillText(`操作：${person(t.leaderId)?.name||''}`,left+28,top+78);
+    let y=top+122;
+    t.groupsWon.forEach((gid,idx)=>{
+      const g=group(gid);x.fillStyle='#a7640e';x.font='800 22px sans-serif';x.fillText(`${idx+1}. ${g?.name||gid}`,left+30,y);
+      x.fillStyle='#514c44';x.font='16px sans-serif';
+      const members=groupMembersLabel(gid);const chunks=[];
+      for(let p=0;p<members.length;p+=32)chunks.push(members.slice(p,p+32));
+      chunks.slice(0,2).forEach((line,j)=>x.fillText(line,left+54,y+25+j*21));
+      y+=78;
+    });
+  });
+  x.fillStyle='#7b6f5e';x.font='16px sans-serif';x.fillText(`Generated ${new Date().toLocaleString('ja-JP')}`,70,1090);
+  const a=document.createElement('a');a.download=`${state.eventName.replace(/[\\/:*?"<>|]/g,'_')}_結果.png`;a.href=c.toDataURL('image/png');a.click()
+}
+
+(async()=>{
+  await initOnlineMode();
+  render();
+  if(isOnlineHost()&&onlineSession.connected)onlineBroadcastSnapshots();
+})();
+
+</script>
+</body>
+</html>
