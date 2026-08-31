@@ -10,5 +10,5 @@ window.NYOUNCER_ONLINE_CONFIG = {
   // 主催者はAivisSpeech接続のためローカル http://127.0.0.1:8765/ で動かしつつ、
   // ここだけ GitHub Pages 等の公開URLにすると便利です。
   // 例: "https://example.github.io/nyouncer-draft/"
-  publicBaseUrl: ""
+  publicBaseUrl: "https://pumpkitten.github.io/nyouncer-draft/"
 };
