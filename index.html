@@ -948,6 +948,24 @@ let onlineHostTeamChannels={};
 let onlineBroadcastTimer=null;
 let onlineUnread=0;
 let onlineChatOpen=false;
+let onlineJoinWatchdog=null;
+
+function reportOnlineSubscriptionFailure(status,err){
+  if(status==='SUBSCRIBED'){
+    onlineSession.connected=true;
+    onlineSession.error='';
+    if(onlineJoinWatchdog){clearTimeout(onlineJoinWatchdog);onlineJoinWatchdog=null;}
+    renderOnlineChrome();
+    return;
+  }
+  if(!['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(status))return;
+  console.error('[NYOUNCER Realtime]',status,err||'(no details)');
+  onlineSession.connected=false;
+  const info=String(err?.message||err?.cause?.message||'').slice(0,240);
+  const label=({CHANNEL_ERROR:'接続エラー',TIMED_OUT:'接続タイムアウト',CLOSED:'接続が閉じられました'})[status];
+  onlineSession.error=`Supabase Realtime: ${label}${info?' ／ '+info:''}。プロジェクトの稼働状態とRealtime設定、ネットワークを確認してください。`;
+  renderOnlineChrome();
+}
 
 function onlineConfigReady(){
   return !!(ONLINE_CFG.supabaseUrl&&ONLINE_CFG.supabaseKey&&
@@ -1099,9 +1117,9 @@ async function initOnlineMode(){
     .on('broadcast',{event:'sync_request'},()=>{if(isOnlineHost())onlineBroadcastSnapshots()})
     .on('broadcast',{event:'chat_post'},({payload})=>{if(isOnlineHost())hostAcceptChat(payload)})
     .on('presence',{event:'sync'},()=>updatePresenceCount())
-    .subscribe(async status=>{
+    .subscribe(async (status,err)=>{
+      reportOnlineSubscriptionFailure(status,err);
       if(status==='SUBSCRIBED'){
-        onlineSession.connected=true;
         try{await onlinePublicChannel.track(onlinePresencePayload())}catch(e){}
         if(isOnlineSpectator()){
           await onlinePublicChannel.send({type:'broadcast',event:'sync_request',payload:{at:Date.now()}});
@@ -1111,6 +1129,14 @@ async function initOnlineMode(){
         renderOnlineChrome();
       }
     });
+
+  // 接続エラーが届かない場合も、無期限に「接続中」と表示し続けない。
+  onlineJoinWatchdog=setTimeout(()=>{
+    if(!onlineSession.connected&&!onlineSession.error){
+      onlineSession.error='Supabase Realtimeから18秒以上応答がありません。プロジェクトが休止中か、ネットワーク通信が遮断されている可能性があります。';
+      renderOnlineChrome();
+    }
+  },18000);
 
   if(isOnlineHost()){
     const meta=onlineHostMeta();
@@ -1216,7 +1242,7 @@ function renderOnlineChrome(){
   let cover=document.getElementById('onlineErrorCover');
   if(isOnlineMode()&&onlineSession.error){
     if(!cover){cover=document.createElement('div');cover.id='onlineErrorCover';cover.className='connection-cover show';document.body.appendChild(cover)}
-    cover.innerHTML=`<div class="connection-card"><div style="font-size:42px">⚠️</div><h3>オンライン接続設定</h3><p>${esc(onlineSession.error)}</p><button class="secondary" onclick="leaveOnlineMode()">ローカル版へ戻る</button></div>`
+    cover.innerHTML=`<div class="connection-card"><div style="font-size:42px">⚠️</div><h3>オンライン接続エラー</h3><p>${esc(onlineSession.error)}</p><div class="hero-actions" style="justify-content:center"><button class="primary" onclick="location.reload()">↻ 接続を再試行</button><button class="secondary" onclick="leaveOnlineMode()">ローカル版へ戻る</button></div><small style="display:block;margin-top:16px;color:#746d64">主催者データは再読み込みでは初期化されません。通信エラーの詳細はブラウザの開発者ツールにも出力されます。</small></div>`
   }else if(cover)cover.remove();
   if(!isOnlineMode()||onlineSession.error)return;
   let waitCover=document.getElementById('onlineWaitingCover');
