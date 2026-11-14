@@ -830,7 +830,7 @@ function normalizeState(s){
   const d=initialState();
   s={...d,...(s||{})};
   s.people=Array.isArray(s.people)?s.people:d.people;
-  s.teams=Array.isArray(s.teams)&&s.teams.length===4?s.teams:d.teams;
+  s.teams=Array.isArray(s.teams)&&s.teams.length>=2&&s.teams.length<=4?s.teams:d.teams;
   s.teams=s.teams.map((t,i)=>({...d.teams[i],...t,members:Array.isArray(t.members)?t.members:[],groupsWon:Array.isArray(t.groupsWon)?t.groupsWon:[]}));
   s.groups=Array.isArray(s.groups)&&s.groups.length?s.groups:d.groups;
   s.groups=s.groups.map((g,i)=>({id:g.id||`g${i+1}`,name:g.name||`グループ${i+1}`,memberIds:Array.isArray(g.memberIds)?g.memberIds:[],acquiredBy:g.acquiredBy||null}));
@@ -909,10 +909,11 @@ function awardGroup(tid,gid,mode='direct'){
   return true;
 }
 function groupCountWarning(){
-  if(state.groups.length<4)return'グループは最低4つ必要です。';
+  const count=state.teams.length;
+  if(state.groups.length<count)return`グループは最低${count}つ必要です。`;
   if(state.groups.some(g=>!g.memberIds.length))return'空のグループがあります。各グループに1名以上設定してください。';
-  if(state.groups.length%4!==0)return`現在${state.groups.length}グループです。4の倍数ではないため、最終的に${state.groups.length%4}グループ余る可能性があります。`;
-  return'4人制ドラフトとして問題なく開始できます。';
+  if(state.groups.length%count!==0)return`現在${state.groups.length}グループです。${count}の倍数ではないため、最終的に${state.groups.length%count}グループ余る可能性があります。`;
+  return`${count}人制ドラフトとして問題なく開始できます。`;
 }
 function phaseLabel(p){return({waiting:'待機',opening:'開幕演出',selecting:state.roundAttempt>1?'再指名':'選択中',reveal:'指名発表',lottery:'抽選',paused:'一時停止',complete:'終了'})[p]||p}
 function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
@@ -990,7 +991,7 @@ function publicSnapshot(){
   s.voice={enabled:false,connected:false};
   s.logs=[];
   s.currentAttemptHistory=[];
-  const visible={A:null,B:null,C:null,D:null};
+  const visible=Object.fromEntries(state.teams.map(t=>[t.id,null]));
   if(s.phase==='reveal'&&s.lastReveal){
     const ids=s.lastReveal.activeTeamIds||[];
     ids.forEach((tid,i)=>{if(i<s.revealIndex)visible[tid]=s.selections[tid]});
@@ -999,7 +1000,7 @@ function publicSnapshot(){
     s.lastReveal.conflicts=Object.entries(counts).filter(([,n])=>n>1).map(([gid])=>gid);
   }else if(s.phase==='lottery'){
     // All picks have already been revealed before lottery begins.
-    Object.assign(visible,s.selections);
+    Object.keys(visible).forEach(tid=>{visible[tid]=s.selections[tid]||null});
   }
   s.selections=visible;
   if(s.pendingConflict)delete s.pendingConflict.selectionGroups;
@@ -1040,7 +1041,7 @@ async function onlineSendTeamCommand(action,payload={}){
   }catch(e){toast('送信に失敗しました')}
 }
 function handleOnlineTeamCommand(tid,p={}){
-  if(!isOnlineHost()||p.teamId!==tid)return;
+  if(!isOnlineHost()||p.teamId!==tid||!team(tid))return;
   if(p.action==='pick'){
     const gid=p.groupId,g=group(gid);
     if(state.phase!=='selecting'||state.currentRoundAssignments[tid]||state.selections[tid]||!g||g.acquiredBy)return;
@@ -1113,7 +1114,7 @@ async function initOnlineMode(){
 
   if(isOnlineHost()){
     const meta=onlineHostMeta();
-    for(const t of state.teams){
+    for(const t of initialState().teams){
       const ch=onlineClient.channel(onlineTeamTopic(t.id,meta.tokens[t.id]),{config:{broadcast:{self:false}}})
         .on('broadcast',{event:'team_command'},({payload})=>handleOnlineTeamCommand(t.id,payload))
         .on('broadcast',{event:'team_sync_request'},()=>{const c=onlineHostTeamChannels[t.id];if(c)c.send({type:'broadcast',event:'state_team',payload:{state:teamSnapshot(t.id),at:Date.now()}})})
@@ -1604,7 +1605,7 @@ function homeView(){
           <div class="ny-subtitle">🐾 ちゃおちゅーる PRESENTS</div>
           <div class="kicker" style="margin-top:18px">NYOUNCER DRAFT CONFERENCE</div>
           <h1><span class="ny-accent">ニャウンサー</span><br>ドラフト会議</h1>
-          <div class="hero-copy">4人の指名実施者・主催者・観戦者をリアルタイム接続。グループ指名、封筒抽選、再指名、観戦、会場チャットまでをニャウンサーが進行するオンライン対応ドラフトシステム。</div>
+          <div class="hero-copy">2〜4人の指名実施者・主催者・観戦者をリアルタイム接続。グループ指名、封筒抽選、再指名、観戦、会場チャットまでをニャウンサーが進行するオンライン対応ドラフトシステム。</div>
           <div class="hero-actions">
             <button class="primary" data-go="setup">${setupLabel}</button>
             <button class="secondary ${state.setupComplete?'':'disabled'}" data-go="admin">主催者画面</button>
@@ -1634,7 +1635,7 @@ function homeView(){
 function setupView(){
   const participantSet=participantIds();
   const colors=['#e16a72','#66a8ff','#58c991','#d7a446'];
-  return `<div class="page-head"><div><div class="kicker">🐾 NYOUNCER GROUP SETUP</div><h2>グループドラフト初期設定</h2><p>4人の抽選参加者と、指名対象となる団員グループを設定します。</p></div><div class="admin-actions"><button class="ghost" data-go="home">ホームへ</button><button class="primary" id="saveSetup">設定を保存</button></div></div>
+  return `<div class="page-head"><div><div class="kicker">🐾 NYOUNCER GROUP SETUP</div><h2>グループドラフト初期設定</h2><p>2〜4人の抽選参加者と、指名対象となる団員グループを設定します。</p></div><div class="admin-actions"><button class="ghost" data-go="home">ホームへ</button><button class="primary" id="saveSetup">設定を保存</button></div></div>
 
 <section class="panel">
   <div class="section-title">イベント</div>
@@ -1643,7 +1644,14 @@ function setupView(){
 </section>
 
 <section class="panel" style="margin-top:18px">
-  <div class="section-title">4人の抽選参加者</div>
+  <div class="section-title">抽選参加者（現在${state.teams.length}人）</div>
+  <div class="form-row" style="margin-bottom:18px;max-width:480px">
+    <div><label for="participantCountSelect">指名参加者数</label>
+    <select id="participantCountSelect" ${state.started?'disabled':''}>
+      ${[2,3,4].map(n=>`<option value="${n}" ${n===state.teams.length?'selected':''}>${n}人</option>`).join('')}
+    </select></div>
+    <div class="callout">${state.started?'開始後は人数を変更できません。新しいドラフトを作成してください。':'人数を選んでから各参加者と所属グループを設定してください。'}</div>
+  </div>
   <div class="grid-4">
     ${state.teams.map((t,i)=>`<div class="team-card" style="--team:${colors[i]}">
       <div class="team-tag">PARTICIPANT ${i+1}</div>
@@ -1676,7 +1684,7 @@ function setupView(){
 
   <section class="panel">
     <div class="section-title">団員名・所属グループ</div>
-    <div class="callout">抽選参加者4人はグループ対象外です。それ以外の団員は未所属、またはいずれか1グループに設定できます。</div>
+    <div class="callout">抽選参加者${state.teams.length}人はグループ対象外です。それ以外の団員は未所属、またはいずれか1グループに設定できます。</div>
     <div class="people-list" style="margin-top:14px">
       ${state.people.map((p,i)=>{
         const isPart=participantSet.has(p.id);
@@ -1888,19 +1896,45 @@ function bind(){
     state.eventName=document.getElementById('eventNameInput')?.value.trim()||state.eventName;
   };
 
+  const participantCountSelect=document.getElementById('participantCountSelect');
+  if(participantCountSelect)participantCountSelect.onchange=()=>{
+    if(state.started){toast('ドラフト開始後は指名参加者数を変更できません');render();return;}
+    const count=Number(participantCountSelect.value);
+    if(![2,3,4].includes(count)||count===state.teams.length)return;
+    syncSetupDraft();
+    if(count<state.teams.length){
+      state.teams=state.teams.slice(0,count);
+    }else{
+      const defaults=initialState().teams;
+      const used=new Set(state.teams.map(t=>t.leaderId));
+      while(state.teams.length<count){
+        const template=defaults[state.teams.length];
+        const candidate=state.people.find(p=>p.id===template.leaderId&&!used.has(p.id))||state.people.find(p=>!used.has(p.id));
+        const leaderId=candidate?.id||template.leaderId;
+        state.teams.push({...template,leaderId});
+        used.add(leaderId);
+      }
+    }
+    const activeLeaders=new Set(state.teams.map(t=>t.leaderId));
+    state.groups.forEach(g=>g.memberIds=g.memberIds.filter(pid=>!activeLeaders.has(pid)));
+    state.setupComplete=false;
+    saveState();render();
+    toast(`指名参加者を${count}人に変更しました。設定を保存してください`);
+  };
+
   const newDraftBtn=document.getElementById('newDraftBtn');if(newDraftBtn)newDraftBtn.onclick=async()=>{if(await confirmAction({title:'新しいドラフト',message:'現在の進行を消して初期設定から始めます。',ok:'新規作成',danger:true})){state=initialState();lockAdmin();clearHistory();saveState();tempSelected=null;go('setup')}};
 
   const add=document.getElementById('addPerson');if(add)add.onclick=()=>{syncSetupDraft();const next=Math.max(0,...state.people.map(p=>Number(p.id.slice(1))||0))+1;state.people.push({id:'p'+next,name:`団員${String(next).padStart(2,'0')}`});saveState();render()};
-  document.querySelectorAll('.remove-person').forEach(btn=>btn.onclick=()=>{syncSetupDraft();const id=btn.dataset.id;if(state.people.length<=8)return toast('抽選参加者と各グループの団員を確保するため、団員は最低8名必要です');if(state.teams.some(t=>t.leaderId===id))return toast('抽選参加者に設定中です');const owned=state.groups.some(g=>g.acquiredBy&&g.memberIds.includes(id));if(owned)return toast('獲得済みグループの団員は削除できません');state.groups.forEach(g=>g.memberIds=g.memberIds.filter(pid=>pid!==id));state.people=state.people.filter(p=>p.id!==id);saveState();render()});
+  document.querySelectorAll('.remove-person').forEach(btn=>btn.onclick=()=>{syncSetupDraft();const id=btn.dataset.id;if(state.people.length<=state.teams.length+state.groups.length)return toast(`抽選参加者と各グループの団員を確保するため、団員は最低${state.teams.length+state.groups.length}名必要です`);if(state.teams.some(t=>t.leaderId===id))return toast('抽選参加者に設定中です');const owned=state.groups.some(g=>g.acquiredBy&&g.memberIds.includes(id));if(owned)return toast('獲得済みグループの団員は削除できません');state.groups.forEach(g=>g.memberIds=g.memberIds.filter(pid=>pid!==id));state.people=state.people.filter(p=>p.id!==id);saveState();render()});
 
   const addGroup=document.getElementById('addGroup');if(addGroup)addGroup.onclick=()=>{if(state.started)return toast('ドラフト開始後はグループ追加できません');syncSetupDraft();const next=Math.max(0,...state.groups.map(g=>Number(String(g.id).replace(/\D/g,''))||0))+1;state.groups.push({id:'g'+next,name:`グループ${next}`,memberIds:[],acquiredBy:null});saveState();render()};
-  document.querySelectorAll('.remove-group').forEach(btn=>btn.onclick=async()=>{if(state.started)return toast('ドラフト開始後はグループ削除できません');syncSetupDraft();const gid=btn.dataset.group,g=group(gid);if(!g)return;if(state.groups.length<=4)return toast('グループは最低4つ必要です');if(await confirmAction({title:'グループ削除',message:'このグループを削除します。所属団員は未所属になります。',name:g.name,ok:'削除',danger:true})){state.groups=state.groups.filter(x=>x.id!==gid);saveState();render()}});
+  document.querySelectorAll('.remove-group').forEach(btn=>btn.onclick=async()=>{if(state.started)return toast('ドラフト開始後はグループ削除できません');syncSetupDraft();const gid=btn.dataset.group,g=group(gid);if(!g)return;if(state.groups.length<=state.teams.length)return toast(`グループは最低${state.teams.length}つ必要です`);if(await confirmAction({title:'グループ削除',message:'このグループを削除します。所属団員は未所属になります。',name:g.name,ok:'削除',danger:true})){state.groups=state.groups.filter(x=>x.id!==gid);saveState();render()}});
 
   const saveSetup=document.getElementById('saveSetup');if(saveSetup)saveSetup.onclick=async()=>{
     syncSetupDraft();
     const leaders=state.teams.map(t=>t.leaderId);
-    if(new Set(leaders).size!==4)return toast('抽選参加者4名は別々の人にしてください');
-    if(state.groups.length<4)return toast('グループは最低4つ必要です');
+    if(new Set(leaders).size!==state.teams.length)return toast(`抽選参加者${state.teams.length}名は別々の人にしてください`);
+    if(state.groups.length<state.teams.length)return toast(`グループは最低${state.teams.length}つ必要です`);
     const empty=state.groups.find(g=>!g.memberIds.length);
     if(empty)return toast(`${empty.name} が空です。1名以上設定してください`);
     const groupNames=state.groups.map(g=>g.name.trim());
@@ -1968,8 +2002,8 @@ function bind(){
 
 async function beginRound(){
   if(['opening','selecting','reveal','lottery','paused','complete'].includes(state.phase))return;
-  if(availableGroups().length<4){
-    if(!state.started)return toast('ドラフト開始には未獲得グループが4つ以上必要です');
+  if(availableGroups().length<state.teams.length){
+    if(!state.started)return toast(`ドラフト開始には未獲得グループが${state.teams.length}つ以上必要です`);
     return finishDraft(false);
   }
   checkpoint(state.started?'次巡開始':'ドラフト開始');
@@ -2112,7 +2146,7 @@ function completeRound(){
   state.roundAttempt=1;
   state.round++;
 
-  if(availableGroups().length<4){
+  if(availableGroups().length<state.teams.length){
     state.phase='complete';state.finishedAt=Date.now();
     const rem=availableGroups().length;
     log(rem?`残り${rem}グループのためドラフト終了`:'全グループの指名が完了');
@@ -2131,7 +2165,7 @@ function finalizeRoundAndAdvance(forced=false){
   state.selections={A:null,B:null,C:null,D:null};
   state.currentRoundAssignments={};state.currentAttemptHistory=[];state.roundAttempt=1;
   state.round++;
-  if(availableGroups().length<4){state.phase='complete';state.finishedAt=Date.now();announce('complete',{eventName:state.eventName})}
+  if(availableGroups().length<state.teams.length){state.phase='complete';state.finishedAt=Date.now();announce('complete',{eventName:state.eventName})}
   else state.phase='waiting';
   log(forced?'主催者が今巡を強制終了':'巡終了');
   saveState();render();
