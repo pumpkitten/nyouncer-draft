@@ -3,8 +3,8 @@
 // Publishable Key（または従来の anon key）はブラウザ配布用のキーです。
 // service_role / secret key は絶対にここへ入れないでください。
 window.NYOUNCER_ONLINE_CONFIG = {
-  supabaseUrl: "https://btpaabxdzrsgacxahimx.supabase.co",
-  supabaseKey: "sb_publishable_aviIIHS35Dr4MxVxBn-34g_eXoqEq-5",
+  supabaseUrl: "https://dnvzaxmedrqfsbkwdant.supabase.co",
+  supabaseKey: "sb_publishable_Ua4ZvSzwIwNIIPd0QUxDVw_HsnXIHD7",
 
   // 指名実施者・観戦者へ配る「公開版」のトップURL。
   // 主催者はAivisSpeech接続のためローカル http://127.0.0.1:8765/ で動かしつつ、
